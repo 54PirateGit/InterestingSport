@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <ImageView
+        android:id="@+id/image_background"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="341dp"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <com.tianbao.mi.widget.banner.Banner
+                android:id="@+id/banner"
+                android:layout_width="322dp"
+                android:layout_height="219dp"
+                android:layout_marginLeft="19dp"
+                android:background="@drawable/card_background"
+                android:layout_marginTop="31dp"/>
+
+            <com.tianbao.mi.widget.banner.Banner
+                android:id="@+id/advertisement"
+                android:layout_width="322dp"
+                android:layout_height="219dp"
+                android:layout_marginLeft="19dp"
+                android:visibility="visible"
+                android:background="@drawable/card_background"
+                android:layout_marginTop="31dp"/>
+
+        </LinearLayout>
+
+        <RelativeLayout
+            android:layout_width="380dp"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="18dp">
+
+            <TextView
+                android:id="@+id/text_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="长沙新瘾健身仓"
+                android:singleLine="true"
+                android:ellipsize="end"
+                android:textColor="#DCDC08"
+                android:textSize="42sp"
+                android:gravity="center"
+                android:layout_marginTop="36dp"/>
+
+            <ImageView
+                android:id="@+id/image_more"
+                android:layout_width="26dp"
+                android:layout_height="13dp"
+                android:background="@drawable/xiangxia"
+                android:layout_marginBottom="85dp"
+                android:layout_alignParentBottom="true"
+                android:visibility="invisible"
+                android:layout_centerHorizontal="true"/>
+
+            <ListView
+                android:id="@+id/list_live_course"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:scrollbars="none"
+                android:divider="#00000000"
+                android:dividerHeight="20dp"
+                android:layout_below="@id/text_name"
+                android:layout_gravity="center"
+                android:layout_marginTop="10dp"/>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_centerHorizontal="true"
+                android:layout_marginBottom="16dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/white"
+                    android:layout_marginBottom="2dp"
+                    android:text="\@"
+                    android:textSize="8sp"/>
+
+                <TextView
+                    android:id="@+id/text_year"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="2017"
+                    android:textColor="@color/white"
+                    android:textSize="8sp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="杭州恬宝科技有限公司"
+                    android:textColor="@color/white"
+                    android:textSize="8sp"
+                    android:layout_marginLeft="5dp"/>
+
+                <ImageView
+                    android:layout_width="10dp"
+                    android:layout_height="10dp"
+                    android:background="@drawable/logo_small"
+                    android:layout_marginLeft="6dp"/>
+
+            </LinearLayout>
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:id="@+id/view1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="40dp"
+                android:layout_marginRight="80dp"
+                android:gravity="center"
+                android:layout_alignParentRight="true"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="15dp"
+                    android:background="@drawable/huoban"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="瘾伙伴"
+                    android:textColor="#DCDC08"
+                    android:layout_marginLeft="10dp"
+                    android:textSize="20sp"/>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/view_tip"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="24dp"
+                android:layout_marginBottom="32dp"
+                android:layout_alignLeft="@id/view1"
+                android:gravity="center"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentBottom="true"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="72dp">
+
+                    <com.tianbao.mi.widget.AutoScrollListView
+                        android:id="@+id/auto_scroll_list"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:divider="#00000000"
+                        android:background="@drawable/card_background"
+                        android:scrollbars="none"/>
+
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="扫码加入课程"
+                    android:textSize="13sp"
+                    android:layout_marginTop="13dp"
+                    android:textColor="@color/white"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="实时掌握运动数据"
+                    android:textSize="13sp"
+                    android:textColor="@color/white"/>
+
+            </LinearLayout>
+
+            <com.tianbao.mi.widget.PartnerLayout
+                android:id="@+id/view_partner"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_alignLeft="@id/view1"
+                android:layout_below="@id/view1"
+                android:layout_above="@id/view_tip"
+                android:layout_marginBottom="13dp"
+                android:layout_marginRight="24dp"
+                android:orientation="vertical">
+
+            </com.tianbao.mi.widget.PartnerLayout>
+
+        </RelativeLayout>
+
+    </LinearLayout>
+
+</RelativeLayout>
