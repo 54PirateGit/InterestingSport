@@ -40,5 +40,11 @@ public class LoginBean {
         private Long refreshRelationFrequency;// 刷新用户关系频率
 
         private Long sortFrequency;// 排序频率
+
+        private String splashAdUrl;
+
+        private String standbyUpAdUrl;
+
+        private String standbyDownAdUrl;
     }
 }

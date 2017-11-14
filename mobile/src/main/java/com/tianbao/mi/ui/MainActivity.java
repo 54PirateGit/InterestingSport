@@ -101,7 +101,7 @@ public class MainActivity extends AppCompatActivity {
     private void setKey() {
         int storeId = (int) SPUtils.get(mContext, StringConstant.STORE_ID_SP_KEY, 1);
         String kString;
-        for (int i = 1; i < 29; i++) {
+        for (int i = 0; i < 30; i++) {
             kString = storeId + "_" + i;
             key.add(kString);
         }
@@ -428,6 +428,8 @@ public class MainActivity extends AppCompatActivity {
                 .baseUrl(Api.BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
+
+        L.d("param", "param -> " + param.toString());
 
         ApiService service = retrofit.create(ApiService.class);
         Call<BuildBean> model = service.getBuild(param);

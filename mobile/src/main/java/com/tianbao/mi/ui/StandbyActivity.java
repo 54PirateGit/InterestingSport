@@ -100,6 +100,8 @@ public class StandbyActivity extends Activity {
     private List<String> key = new ArrayList<>();
     private List<PartnerTipBean> pList;
 
+    private ArrayList<String> bannerList = new ArrayList<>();
+
     private void setKey() {
         int storeId = (int) SPUtils.get(mContext, StringConstant.STORE_ID_SP_KEY, 1);
         String kString;
@@ -152,34 +154,30 @@ public class StandbyActivity extends Activity {
         mHandler.post(mLoopLiveListRunnable);
 
         requestUserInfo(key);
-//        viewPartner();
-
         scrollList.setAlpha(0.5f);
     }
 
     // 初始化轮播图
     private void initBanner() {
-        // 轮播图数据  测试
-        List<Integer> bannerData = new ArrayList<>();
-        bannerData.add(R.drawable.jingp);
-//        bannerData.add(R.mipmap.a2);
-//        bannerData.add(R.mipmap.a3);
-//        bannerData.add(R.mipmap.a4);
+        Intent intent = getIntent();
+        if (intent != null) {
+            bannerList = intent.getStringArrayListExtra(StringConstant.BANNER_LIST_UP);
+        }
 
         // 轮播图
-        BannerAdapter bannerAdapter = new BannerAdapter(mContext, 400);
-        bannerAdapter.setData(bannerData);
+        BannerAdapter bannerAdapter = new BannerAdapter(mContext, 200);
+        bannerAdapter.setData(bannerList);
         banner.setDotGravity(Banner.CENTER).
                 setDot(R.drawable.no_selected_dot, R.drawable.selected_dot).
                 setAdapter(bannerAdapter);
 
-        if (bannerData.size() > 1) {
+        if (bannerList.size() > 1) {
             banner.startAutoPlay();//  自动播放轮播图
         } else {
             banner.stopAutoPlay();
         }
 
-        if (bannerData.size() == 0) banner.setAlpha(0.5f);
+        if (bannerList.size() == 0) banner.setAlpha(0.5f);
         else banner.setAlpha(1.0f);
 
         advertisement.setAlpha(0.5f);
@@ -287,7 +285,6 @@ public class StandbyActivity extends Activity {
                             }
                         }
                         adapter.setList(dList);
-//                        courseId = adapter.ok(position);
                         mHandler.postDelayed(() -> request(), 5000L);
                     }
                 } else {
@@ -422,6 +419,8 @@ public class StandbyActivity extends Activity {
                 tempList.add(key);
                 requestUserInfo(tempList);
 
+                L.d("tempList", "tempList -> " + tempList.toString());
+
                 SoundPlayUtils.play(1);// 播放背景音乐  有新的瘾伙伴加入
             } else if (action.equals(StringConstant.BROAD_START_COURSE)) {// 课程开始
                 mHandler.postDelayed(mIntoLiveRunnable, 5 * 1000L);
@@ -439,12 +438,18 @@ public class StandbyActivity extends Activity {
 
     // 获取用户的绑定关系
     private void requestUserInfo(List<String> tempList) {
+        tempList.add(0, "0");
+        tempList.add("0");
+
         Map<String, List<String>> param = new HashMap<>();
         param.put("headIds", tempList);
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(Api.BASE_URL)
+//                .baseUrl("http://192.168.31.58:8080")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
+
+        L.d("tempList", "tempList -> " + tempList.toString());
 
         ApiService service = retrofit.create(ApiService.class);
         Call<BuildBean> model = service.getBuild(param);

@@ -15,7 +15,7 @@ public class MotionData implements Serializable {
     private int id;
 
     /**
-     * 用户id
+     * 用户 id
      */
     private int userId;
 

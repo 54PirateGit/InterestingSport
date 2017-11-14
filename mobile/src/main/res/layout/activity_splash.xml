@@ -75,11 +75,11 @@
         android:layout_centerHorizontal="true"
         android:orientation="vertical">
 
-        <com.tianbao.mi.widget.banner.Banner
+        <ImageView
             android:id="@+id/advertisement"
             android:layout_width="250dp"
             android:layout_height="150dp"
-            android:visibility="visible"
+            android:visibility="gone"
             android:background="@drawable/card_background"/>
 
     </LinearLayout>

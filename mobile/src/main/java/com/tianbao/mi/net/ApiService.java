@@ -1,18 +1,19 @@
 package com.tianbao.mi.net;
 
+import com.tianbao.mi.bean.UploadData;
 import com.tianbao.mi.bean.BuildBean;
 import com.tianbao.mi.bean.CourseInfoBean;
+import com.tianbao.mi.bean.CurrencyBean;
 import com.tianbao.mi.bean.LiveCourseBean;
 import com.tianbao.mi.bean.LoginBean;
-import com.tianbao.mi.bean.MotionData;
 import com.tianbao.mi.bean.RecordBean;
-import com.tianbao.mi.bean.CurrencyBean;
 import com.tianbao.mi.bean.UploadDataBean;
 
 import java.util.List;
 import java.util.Map;
 
 import retrofit.Call;
+import retrofit.http.Body;
 import retrofit.http.POST;
 import retrofit.http.QueryMap;
 
@@ -52,9 +53,13 @@ public interface ApiService {
 
     // 上传用户运动数据
     @POST(Api.SAVE_MOTION_DATA)
-    Call<UploadDataBean> saveMotionData(@QueryMap Map<String, List<MotionData>> param);
+    Call<UploadDataBean> saveMotionData(@Body UploadData param);
 
     // 解除绑定 用户与单车的关系
     @POST(Api.USER_UNBINDING)
     Call<CurrencyBean> unbinding(@QueryMap Map<String,String> param);
+
+    // 获取配置信息
+    @POST(Api.GET_APP)
+    Call<LoginBean> getApp(@QueryMap Map<String,String> param);
 }

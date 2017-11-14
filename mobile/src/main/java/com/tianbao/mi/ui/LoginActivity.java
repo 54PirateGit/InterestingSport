@@ -17,6 +17,7 @@ import com.tianbao.mi.net.ApiService;
 import com.tianbao.mi.utils.L;
 import com.tianbao.mi.utils.SPUtils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -72,6 +73,10 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onResponse(Response<LoginBean> response, Retrofit retrofit) {
                 L.v("response", "response == " + response.body().toString());
+
+                Intent intent = new Intent(mContext, StandbyActivity.class);
+                ArrayList<String> bannerList = null;
+
                 LoginBean loginBean = response.body();
                 int code = loginBean.getCode();
                 if (code == IntegerConstant.RESULT_OK) {
@@ -91,11 +96,26 @@ public class LoginActivity extends AppCompatActivity {
 
                         long refreshSort = data.getSortFrequency();
                         if (refreshSort > 0) SPUtils.put(mContext, StringConstant.SORT_FREQUENCY, refreshSort);
+
+                        // 将轮播图地址传递到待机页  如果有数据待机页就直接展示不需要重复获取
+                        String adUrls = data.getStandbyUpAdUrl();
+                        if (!TextUtils.isEmpty(adUrls)) {
+                            if (adUrls.contains("，")) {
+                                adUrls = adUrls.replace("，", ",");
+                            }
+                            String[] adUrlArr = adUrls.split(",");
+                            for (String url : adUrlArr) {
+                                if (bannerList == null) bannerList = new ArrayList<>();
+                                bannerList.add(url);
+                            }
+                        }
                     } else {
                         Toast.makeText(mContext, "data is null", Toast.LENGTH_SHORT).show();
                     }
 
-                    Intent intent = new Intent(mContext, StandbyActivity.class);
+                    if (bannerList != null && bannerList.size() > 0) {
+                        intent.putStringArrayListExtra(StringConstant.BANNER_LIST_UP, bannerList);
+                    }
                     startActivity(intent);
                     finish();
                 } else {

@@ -38,4 +38,7 @@ public class Api {
 
     // 解除绑定 用户与单车的关系
     public final static String USER_UNBINDING = "/api/pi/unbinding";
+
+    // 获取配置信息
+    public final static String GET_APP = "/api/pi/getApp";
 }
