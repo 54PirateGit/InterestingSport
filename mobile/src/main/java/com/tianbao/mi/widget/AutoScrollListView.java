@@ -23,6 +23,8 @@ public class AutoScrollListView extends ListView {
 
     private Context mContext;
 
+    private boolean isTipRun;// 线程是否开启
+
     public AutoScrollListView(Context context) {
         this(context, null);
         mContext = context;
@@ -38,22 +40,23 @@ public class AutoScrollListView extends ListView {
 
     public void setInfoList(List<InformationBean> list) {
         this.iList = list;
-        setAdapter(iAdapter = new InfoListAdapter(mContext, iList));
+        setAdapter(new InfoListAdapter(mContext, iList));
 
         postDelayed(updateRunnable, DELAY_TIME);
-    }
-
-    public void setPartnerList(List<PartnerTipBean> list) {
-        this.pList = list;
-        setAdapter(pAdapter = new PartnerTipAdapter(mContext, pList));
-
-        postDelayed(updatePartnerRunnable, DELAY_TIME);
+        isTipRun = true;
     }
 
     // 更新数据
     public void updateData(InformationBean bean) {
         if (iList == null) iList = new ArrayList<>();
         iList.add(bean);
+    }
+
+    public void setPartnerList(List<PartnerTipBean> list) {
+        this.pList = list;
+        setAdapter(new PartnerTipAdapter(mContext, pList));
+
+        postDelayed(updatePartnerRunnable, DELAY_TIME);
     }
 
     // 更新数据
@@ -69,22 +72,10 @@ public class AutoScrollListView extends ListView {
             if (iList.size() > 3) {
                 iList.remove(0);
             }
-
             setAdapter(new InfoListAdapter(mContext, iList));
-
-//            if (iAdapter == null) {
-//                iAdapter = new InfoListAdapter(mContext, iList);
-//                setAdapter(iAdapter);
-//            } else {
-//                iAdapter.setList(iList);
-//            }
-
             postDelayed(this, DELAY_TIME);
         }
     };
-
-    private InfoListAdapter iAdapter;
-    private PartnerTipAdapter pAdapter;
 
     // 更新新加入的瘾伙伴
     private Runnable updatePartnerRunnable = new Runnable() {
@@ -93,17 +84,14 @@ public class AutoScrollListView extends ListView {
             if (pList.size() > 3) {
                 pList.remove(0);
             }
-
-            if (pAdapter == null) {
-                pAdapter = new PartnerTipAdapter(mContext, pList);
-                setAdapter(pAdapter);
-            } else {
-                pAdapter.notifyDataSetChanged();
-            }
-
+            setAdapter(new PartnerTipAdapter(mContext, pList));
             postDelayed(this, DELAY_TIME);
         }
     };
+
+    public boolean isTipRun() {
+        return isTipRun;
+    }
 
     @Override
     protected void onDetachedFromWindow() {

@@ -31,12 +31,17 @@ public class UserDataBean implements Serializable, Comparable<UserDataBean> {
 
     private int calorie;
 
+    private int sort;// 排名  只排123
+
+    private boolean isNotOnline;// 是否不在线
+
+    private long lastTime;// 最后获取到数据时的时间
+
+    private long time;// 保存数据时候的时间  如果速度这个数据在一定时间内都为0 则会有掉线机制处理
+
     @Override
     public int compareTo(@NonNull UserDataBean o) {
         int i = o.getCalorie() - this.getCalorie();// 按卡路里排序
-        if(i == 0){
-            return Integer.valueOf(o.getRate()) - Integer.valueOf(this.getRate());// 如果卡路里相等则按速度排序
-        }
         return i;
     }
 }

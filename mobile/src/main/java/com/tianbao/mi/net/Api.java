@@ -32,4 +32,10 @@ public class Api {
 
     // 更换直播课程
     public final static String CHANGE_COURSE_LIVE = "/api/pi/changeCourseLive";
+
+    // 上传用户运动数据
+    public final static String SAVE_MOTION_DATA = "/api/pi/saveMotionData";
+
+    // 解除绑定 用户与单车的关系
+    public final static String USER_UNBINDING = "/api/pi/unbinding";
 }

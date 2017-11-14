@@ -11,6 +11,9 @@ import lombok.Data;
 @Data
 public class MotionData implements Serializable {
 
+    // ID
+    private int id;
+
     /**
      * 用户id
      */

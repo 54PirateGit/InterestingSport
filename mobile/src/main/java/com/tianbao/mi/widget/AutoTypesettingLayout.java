@@ -40,11 +40,13 @@ public class AutoTypesettingLayout extends LinearLayout {
         int height = (arr[1] - SystemUtils.dip2px(mContext, 40)) / 7;
 
         for (int i=0; i<getChildCount(); i++) {
-            View child = getChildAt(i);
+            MemberView child = (MemberView) getChildAt(i);
             LinearLayout.LayoutParams layoutParams = (LinearLayout.LayoutParams) child.getLayoutParams();
             layoutParams.width = width;
             layoutParams.height = height;
             child.setLayoutParams(layoutParams);
+
+            child.sort();
         }
         invalidate();
     }

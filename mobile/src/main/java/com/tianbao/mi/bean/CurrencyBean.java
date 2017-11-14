@@ -7,7 +7,7 @@ import lombok.Data;
  * Created by edianzu on 2017/11/1.
  */
 @Data
-public class SelectCourseBean {
+public class CurrencyBean {
 
     private int code;
 

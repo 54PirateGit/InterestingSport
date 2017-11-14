@@ -25,6 +25,9 @@ public class MiMessageReceiver extends PushMessageReceiver {
         super.onReceivePassThroughMessage(context, miPushMessage);
 
         String title = miPushMessage.getTitle();// 标题
+
+        L.v("MiMessageReceiver", "title -> " + title);
+
         switch (title) {
             case StringConstant.BUILD_UPDATE:// 有新的用户绑定关系
                 String content = miPushMessage.getContent();
@@ -35,14 +38,10 @@ public class MiMessageReceiver extends PushMessageReceiver {
                 MyApp.getContext().sendBroadcast(intentBuild);
                 break;
             case StringConstant.START_COURSE:// 课程开始了
-                L.v("MiMessageReceiver", "title -> " + title);
-
                 Intent intentStart = new Intent(StringConstant.BROAD_START_COURSE);
                 MyApp.getContext().sendBroadcast(intentStart);
                 break;
             case StringConstant.END_COURSE:// 课程结束了
-                L.v("MiMessageReceiver", "title -> " + title);
-
                 Intent intentEnd = new Intent(StringConstant.BROAD_END_COURSE);
                 MyApp.getContext().sendBroadcast(intentEnd);
                 break;

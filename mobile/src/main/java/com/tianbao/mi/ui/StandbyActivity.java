@@ -32,7 +32,7 @@ import com.tianbao.mi.bean.CourseInfoBean;
 import com.tianbao.mi.bean.LiveCourseBean;
 import com.tianbao.mi.bean.PartnerBean;
 import com.tianbao.mi.bean.PartnerTipBean;
-import com.tianbao.mi.bean.SelectCourseBean;
+import com.tianbao.mi.bean.CurrencyBean;
 import com.tianbao.mi.constant.IntegerConstant;
 import com.tianbao.mi.constant.StringConstant;
 import com.tianbao.mi.net.Api;
@@ -133,6 +133,12 @@ public class StandbyActivity extends Activity {
         registerBroad();// 注册广播
         setKey();// 全部 key
         initView();
+
+//        isLoop = false;
+//        Intent intent = new Intent(StandbyActivity.this, LoadActivity.class);
+//        intent.putStringArrayListExtra(StringConstant.USER_KEY, kList);
+//        startActivity(intent);// 进入加载
+//        finish();
     }
 
     // 初始化视图
@@ -220,8 +226,8 @@ public class StandbyActivity extends Activity {
 
                 int code = courseBean.getCode();
                 if (code == IntegerConstant.RESULT_OK) {
-                    if (dList == null) dList = new ArrayList<>();
                     dList = courseBean.getData();
+                    if (dList == null || dList.size() <= 0) return ;
                     if (dList.size() <= 3) imageMore.setVisibility(View.INVISIBLE);
                     else imageMore.setVisibility(View.VISIBLE);
                     if (adapter == null) {// 第一次进入界面时加载数据
@@ -262,13 +268,13 @@ public class StandbyActivity extends Activity {
                 .build();
 
         ApiService service = retrofit.create(ApiService.class);
-        Call<SelectCourseBean> model = service.selectCourseLive(param);
-        model.enqueue(new Callback<SelectCourseBean>() {
+        Call<CurrencyBean> model = service.selectCourseLive(param);
+        model.enqueue(new Callback<CurrencyBean>() {
             @Override
-            public void onResponse(Response<SelectCourseBean> response, Retrofit retrofit) {
+            public void onResponse(Response<CurrencyBean> response, Retrofit retrofit) {
                 if (dialogLoading != null) dialogLoading.dismiss();
                 isLoad = false;
-                SelectCourseBean bean = response.body();
+                CurrencyBean bean = response.body();
                 if (bean == null) return;
                 int code = bean.getCode();
                 if (code == IntegerConstant.RESULT_OK) {
@@ -311,20 +317,19 @@ public class StandbyActivity extends Activity {
                 .build();
 
         ApiService service = retrofit.create(ApiService.class);
-        Call<SelectCourseBean> model = service.changeCourseLive(param);
-        model.enqueue(new Callback<SelectCourseBean>() {
+        Call<CurrencyBean> model = service.changeCourseLive(param);
+        model.enqueue(new Callback<CurrencyBean>() {
             @Override
-            public void onResponse(Response<SelectCourseBean> response, Retrofit retrofit) {
+            public void onResponse(Response<CurrencyBean> response, Retrofit retrofit) {
                 if (dialogLoading != null) dialogLoading.dismiss();
                 isLoad = false;
-                SelectCourseBean bean = response.body();
+                CurrencyBean bean = response.body();
                 if (bean == null) return;
                 int code = bean.getCode();
                 if (code == IntegerConstant.RESULT_OK) {
                     if (mIntoLiveRunnable != null) {
                         mHandler.removeCallbacks(mIntoLiveRunnable);
                     }
-
                     if (adapter != null) {
                         for (int i=0; i<dList.size(); i++) {
                             if (i == position) {
@@ -334,9 +339,6 @@ public class StandbyActivity extends Activity {
                             }
                         }
                         adapter.setList(dList);
-
-//                        courseId = adapter.ok(position);
-
                         mHandler.postDelayed(() -> request(), 5000L);
                     }
                 } else {
@@ -353,7 +355,7 @@ public class StandbyActivity extends Activity {
         });
     }
 
-    // 获取一次课程信息
+    // 获取课程信息
     private void request() {
         Map<String, String> param = new HashMap<>();
         param.put("storeId", String.valueOf(IntegerConstant.STORE_ID));
@@ -386,11 +388,7 @@ public class StandbyActivity extends Activity {
                         isLoop = true;
                         mHandler.postDelayed(mLoopRequestRunnable, LOOP_TIME);
                     } else {
-
-                        L.v("status -> > > " + course.getLiveStatus());
-
                         if (course.getLiveStatus().equals(StringConstant.LIVE_STATU_ING)) {
-//                            mHandler.postDelayed(mIntoLiveRunnable, 5 * 1000L);
                             SoundPlayUtils.play(2);// 播放背景音乐
 
                             isLoop = false;
@@ -425,14 +423,6 @@ public class StandbyActivity extends Activity {
                 requestUserInfo(tempList);
 
                 SoundPlayUtils.play(1);// 播放背景音乐  有新的瘾伙伴加入
-
-//                if (kList == null) kList = new ArrayList<>();
-//                else if (!kList.contains(key)) {// 有新的用户加入
-//                    kList.add(key);
-//                    List<String> tempList = new ArrayList<>();
-//                    tempList.add(key);
-//                    requestUserInfo(tempList);
-//                }
             } else if (action.equals(StringConstant.BROAD_START_COURSE)) {// 课程开始
                 mHandler.postDelayed(mIntoLiveRunnable, 5 * 1000L);
             }
@@ -443,7 +433,6 @@ public class StandbyActivity extends Activity {
     private Runnable mIntoLiveRunnable = () -> {
         isLoop = false;
         Intent intent = new Intent(StandbyActivity.this, LoadActivity.class);
-        intent.putStringArrayListExtra(StringConstant.USER_KEY, kList);
         startActivity(intent);// 进入加载
         finish();
     };
@@ -542,32 +531,7 @@ public class StandbyActivity extends Activity {
         });
     }
 
-//    private List<PartnerBean> getData() {
-//        List<PartnerBean> list = new ArrayList<>();
-//        PartnerBean bean;
-//        for (int i = 0; i < 20; i++) {
-//            bean = new PartnerBean();
-//            bean.setNick("用户_" + i);
-//            bean.setHead("");
-//            list.add(bean);
-//        }
-//        return list;
-//    }
-
-    // 加载瘾伙伴
-//    private void viewPartner() {
-//        List<PartnerView> vList = new ArrayList<>();
-//        List<PartnerBean> list = getData();
-//        for (int i = 0; i < list.size(); i++) {
-//            PartnerView view = new PartnerView(mContext);
-//            view.updateView(list.get(i));
-//            vList.add(view);
-//        }
-//        viewPartner.setList(vList);
-//    }
-
     private int position = 0;// 当前位置
-//    private int courseId = 0;// 课程 ID
 
     // 处理遥控器按键事件
     @Override
@@ -636,13 +600,6 @@ public class StandbyActivity extends Activity {
         set.addAnimation(animation);
 
         LayoutAnimationController controller = new LayoutAnimationController(set, 0.5f);// 0.5f 动画播放的延迟时间
-
-        /*
-         * 子 view 播放动画的顺序
-         * ORDER_NORMAL     正序加载
-         * ORDER_REVERSE    倒序加载
-         * ORDER_RANDOM     随机加载
-         */
         controller.setOrder(LayoutAnimationController.ORDER_NORMAL);
         return controller;
     }

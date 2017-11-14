@@ -81,6 +81,9 @@ public class StringConstant {
     // 等待直播课程
     public static String  LIVE_STATU_WAIT = "待直播";
 
+    // 待直播课程结束
+    public static String  LIVE_STATU_OVER = "直播结束";
+
     // 数据传递 用户绑定的 KEY
     public static String  USER_KEY = "USER_KEY";
 
