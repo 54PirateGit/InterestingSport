@@ -88,22 +88,22 @@ public class MemberView extends LinearLayout {
         int sort = data.getSort();
         textSort.setText(String.valueOf(sort));
 
-        if (sort == 1) {
-            imageSort.setBackground(getResources().getDrawable(R.drawable.no1));
-            imageSort.setVisibility(VISIBLE);
-            viewBack.setBackground(getResources().getDrawable(R.drawable.card_white_background));
-        } else if (sort == 2) {
-            imageSort.setBackground(getResources().getDrawable(R.drawable.no2));
-            imageSort.setVisibility(VISIBLE);
-            viewBack.setBackground(getResources().getDrawable(R.drawable.card_white_background));
-        } else if (sort == 3) {
-            imageSort.setBackground(getResources().getDrawable(R.drawable.no3));
-            imageSort.setVisibility(VISIBLE);
-            viewBack.setBackground(getResources().getDrawable(R.drawable.card_white_background));
-        } else {
-            imageSort.setVisibility(GONE);
-            viewBack.setBackground(getResources().getDrawable(R.drawable.card_background));
-        }
+//        if (sort == 1) {
+//            imageSort.setBackground(getResources().getDrawable(R.drawable.no1));
+//            imageSort.setVisibility(VISIBLE);
+//            viewBack.setBackground(getResources().getDrawable(R.drawable.card_white_background));
+//        } else if (sort == 2) {
+//            imageSort.setBackground(getResources().getDrawable(R.drawable.no2));
+//            imageSort.setVisibility(VISIBLE);
+//            viewBack.setBackground(getResources().getDrawable(R.drawable.card_white_background));
+//        } else if (sort == 3) {
+//            imageSort.setBackground(getResources().getDrawable(R.drawable.no3));
+//            imageSort.setVisibility(VISIBLE);
+//            viewBack.setBackground(getResources().getDrawable(R.drawable.card_white_background));
+//        } else {
+//            imageSort.setVisibility(GONE);
+//            viewBack.setBackground(getResources().getDrawable(R.drawable.card_background));
+//        }
 
         invalidate();
     }
@@ -127,6 +127,10 @@ public class MemberView extends LinearLayout {
             viewBack.setBackground(getResources().getDrawable(R.drawable.card_background));
         }
         invalidate();
+    }
+
+    public void updateView() {
+        String hearRate = textHeartRate.getText().toString();
     }
 
     public String getKey() {

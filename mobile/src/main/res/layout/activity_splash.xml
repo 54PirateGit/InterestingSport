@@ -68,8 +68,8 @@
         android:layout_centerHorizontal="true"/>
 
     <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="196dp"
+        android:layout_height="126dp"
         android:layout_below="@id/image_logo"
         android:layout_marginTop="31dp"
         android:layout_centerHorizontal="true"
@@ -77,10 +77,10 @@
 
         <ImageView
             android:id="@+id/advertisement"
-            android:layout_width="250dp"
-            android:layout_height="150dp"
-            android:visibility="gone"
-            android:background="@drawable/card_background"/>
+            android:layout_width="196dp"
+            android:layout_height="126dp"
+            android:visibility="visible"
+            android:background="@drawable/card_white_background"/>
 
     </LinearLayout>
 

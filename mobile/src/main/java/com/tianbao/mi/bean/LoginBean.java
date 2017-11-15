@@ -46,5 +46,9 @@ public class LoginBean {
         private String standbyUpAdUrl;
 
         private String standbyDownAdUrl;
+
+        private String loadLeftAdUrl;
+
+        private String loadRightAdUrl;
     }
 }

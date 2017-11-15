@@ -24,6 +24,7 @@ public class AutoScrollListView extends ListView {
     private Context mContext;
 
     private boolean isTipRun;// 线程是否开启
+    private boolean isJoinRun;// 瘾伙伴加入线程是否开启
 
     public AutoScrollListView(Context context) {
         this(context, null);
@@ -52,11 +53,13 @@ public class AutoScrollListView extends ListView {
         iList.add(bean);
     }
 
+    // 更新新加入的瘾伙伴
     public void setPartnerList(List<PartnerTipBean> list) {
         this.pList = list;
         setAdapter(new PartnerTipAdapter(mContext, pList));
 
         postDelayed(updatePartnerRunnable, DELAY_TIME);
+        isJoinRun = true;
     }
 
     // 更新数据
@@ -91,6 +94,10 @@ public class AutoScrollListView extends ListView {
 
     public boolean isTipRun() {
         return isTipRun;
+    }
+
+    public boolean isJoinRun() {
+        return isJoinRun;
     }
 
     @Override

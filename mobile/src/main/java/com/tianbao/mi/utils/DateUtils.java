@@ -32,25 +32,6 @@ public class DateUtils {
         }
 
         return format;
-
-//        String[] times = time.split("-");
-//
-//        L.d("timeFormat", times[0] + " -> " + times[1]);
-//
-//        String[] ts1 = times[0].split(".");
-//
-//        L.d("timeFormat", ts1[0] + " -> " + ts1[1]);
-//
-//        String[] ts2 = times[1].split(".");
-//
-//        L.d("timeFormat", ts2[0] + " -> " + ts2[1]);
-
-//        try {
-//            format = ts1[0] + ":" + ts1[1] + "至" + ts2[0] + ts2[1];
-//            return format;
-//        } catch (Exception e) {
-//            return null;
-//        }
     }
 
     /**

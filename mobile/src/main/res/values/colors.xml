@@ -18,4 +18,14 @@
 
     <color name="gray">#999999</color>
 
+    <color name="limitColor">#DF2D2E</color>
+
+    <color name="accumulationColor">#F87F4E</color>
+
+    <color name="consumeColor">#EFD068</color>
+
+    <color name="burningColor">#8E99F1</color>
+
+    <color name="relaxColor">#6CDAD5</color>
+
 </resources>

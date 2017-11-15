@@ -8,7 +8,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Process;
 
-import com.tianbao.mi.bean.CourseInfoBean;
 import com.tianbao.mi.constant.StringConstant;
 import com.tianbao.mi.utils.DevicesUtils;
 import com.tianbao.mi.utils.L;
@@ -16,6 +15,7 @@ import com.tianbao.mi.utils.SoundPlayUtils;
 import com.tianbao.mi.widget.bdplayer.BDCloudVideoView;
 import com.xiaomi.mipush.sdk.MiPushClient;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -32,10 +32,26 @@ public class MyApp extends Application {
 
     private static MyApp mContext;
 
-    private static CourseInfoBean mCourseInfo;
-
     private static int courseId = 0;
     private static String courseEndTime = "0";
+
+    private static List<String> loadImageUrl;// 加载界面图片地址
+
+    /**
+     * 获取图片地址
+     * @return 图片地址  没有就返回 null
+     */
+    public static List<String> getLoadUrl() {
+        return loadImageUrl;
+    }
+
+    /**
+     * 设置图片地址
+     */
+    public static void setLoadUrl(String url) {
+        if (MyApp.loadImageUrl == null) MyApp.loadImageUrl = new ArrayList<>();
+        MyApp.loadImageUrl.add(url);
+    }
 
     /**
      * 维护 Activity 的 list
@@ -66,20 +82,6 @@ public class MyApp extends Application {
 
     public static Context getContext() {
         return mContext;
-    }
-
-    /**
-     * 保存课程信息
-     */
-    public static void setCourseInfo(CourseInfoBean bean) {
-        MyApp.mCourseInfo = bean;
-    }
-
-    /**
-     * 获取课程信息
-     */
-    public static CourseInfoBean getCourseInfo() {
-        return MyApp.mCourseInfo;
     }
 
     /**

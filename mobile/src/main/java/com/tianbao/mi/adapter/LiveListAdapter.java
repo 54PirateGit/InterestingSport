@@ -8,7 +8,6 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
 import com.tianbao.mi.R;
@@ -31,25 +30,10 @@ public class LiveListAdapter extends BaseAdapter {
     private Context mContext;
     private List<LiveCourseBean.DataBean> mList;
     private int mIndex;// 焦点位置
-    private int selectPosition = -1;// 选中位置
 
     public LiveListAdapter(Context context, List<LiveCourseBean.DataBean> list) {
         this.mContext = context;
         this.mList = list;
-    }
-
-    public int setList(List<LiveCourseBean.DataBean> list, int courseId) {
-        this.mList = list;
-
-        int index = 0;
-        for (int i=0; i<mList.size(); i++) {
-            if (mList.get(i).getId() == courseId) {
-                index = i;
-                break;
-            }
-        }
-        notifyDataSetChanged();
-        return index;
     }
 
     public void setList(List<LiveCourseBean.DataBean> list) {
@@ -67,13 +51,6 @@ public class LiveListAdapter extends BaseAdapter {
     public void down(int index) {
         mIndex = index;
         notifyDataSetChanged();
-    }
-
-    // 确认
-    public int ok(int index) {
-        selectPosition = index;
-        notifyDataSetChanged();
-        return mList.get(selectPosition).getId();
     }
 
     // 获取课程 ID
@@ -115,12 +92,6 @@ public class LiveListAdapter extends BaseAdapter {
             holder.viewBackground.setBackground(mContext.getDrawable(R.drawable.card_background));
         }
 
-//        if (selectPosition == position) {
-//            holder.imageSelect.setVisibility(View.VISIBLE);
-//        } else {
-//            holder.imageSelect.setVisibility(View.GONE);
-//        }
-
         LiveCourseBean.DataBean data = mList.get(position);
 
         // 选中状态
@@ -131,10 +102,6 @@ public class LiveListAdapter extends BaseAdapter {
             if (StringConstant.LIVE_URL.equals("-1")) {// 获取直播地址
                 StringConstant.LIVE_URL = data.getLiveUrl();
             }
-
-
-
-            Toast.makeText(mContext, "id -> " + MyApp.getCourseId(), Toast.LENGTH_LONG).show();
         } else {
             holder.imageSelect.setVisibility(View.GONE);
         }
@@ -170,15 +137,6 @@ public class LiveListAdapter extends BaseAdapter {
             time = DateUtils.timeFormat(time);
         }
         holder.textTime.setText(time);
-
-        // 选中状态
-//        int type = data.getSelectType();
-//        if (type == IntegerConstant.LIVE_COURSE_SELECT_TYPE) {
-//            holder.imageSelect.setVisibility(View.VISIBLE);
-//        } else {
-//            holder.imageSelect.setVisibility(View.GONE);
-//        }
-
         return convertView;
     }
 

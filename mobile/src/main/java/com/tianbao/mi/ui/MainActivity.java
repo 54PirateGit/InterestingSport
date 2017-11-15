@@ -232,23 +232,28 @@ public class MainActivity extends AppCompatActivity {
                     String rate = dData.get("rate");
                     if (TextUtils.isEmpty(rate) || rate.equals("0") || rate.equals("--")) {// 获取空的数据
                         String oldRate = mList.get(i).getRate();// 取出上一次的数据
-                        if (!TextUtils.isEmpty(oldRate) && !oldRate.equals("0") && !rate.equals("--")) {// 上一次的数据不为空
-                            bean.setRate(rate);
-                            bean.setLastTime(System.currentTimeMillis());// 将空的数据填入并记录当前时间
-                        } else {// 上一次的数据就已经为空 说明已经记录了第一次为空时的时间 这里就需要判断数据为空时长是否大于 5 分钟
-                            long lastTime = bean.getLastTime();// 取出记录为空时的时间
-                            if (lastTime != 0) {// 不为 0
-                                long time = System.currentTimeMillis();// 获取当前时间  用于比较
-                                if (time - lastTime >= 5 * 60 * 1000L) {// 数据空档期已经超过 5 分钟
-                                    String openId = bean.getOpenId();
-                                    String headId = bean.getKey();
-                                    requestUnbinding(openId, headId);
-                                }
-                            } else {// 记录的时间为 0 说明是第一次数据记录 此时说有数据为 0 一般在课程开始之后不会出现此情况
+                        if (oldRate != null) {
+                            if (!TextUtils.isEmpty(oldRate) && !oldRate.equals("0") && !rate.equals("--")) {// 上一次的数据不为空
                                 bean.setRate(rate);
-                                bean.setLastTime(System.currentTimeMillis());
+                                bean.setLastTime(System.currentTimeMillis());// 将空的数据填入并记录当前时间
+                            } else {// 上一次的数据就已经为空 说明已经记录了第一次为空时的时间 这里就需要判断数据为空时长是否大于 5 分钟
+                                long lastTime = bean.getLastTime();// 取出记录为空时的时间
+                                if (lastTime != 0) {// 不为 0
+                                    long time = System.currentTimeMillis();// 获取当前时间  用于比较
+                                    if (time - lastTime >= 5 * 60 * 1000L) {// 数据空档期已经超过 5 分钟
+
+                                        L.i("TimeDifference", "TimeDifference -> " + (time - lastTime));
+
+                                        String openId = bean.getOpenId();
+                                        String headId = bean.getKey();
+                                        requestUnbinding(openId, headId);// 将此信息发送到后台
+                                    }
+                                } else {// 记录的时间为 0 说明是第一次没有数据的记录
+                                    bean.setRate(rate);
+                                    bean.setLastTime(System.currentTimeMillis());
+                                }
                             }
-                         }
+                        }
                     } else {
                         bean.setRate(rate);
                     }
@@ -420,6 +425,15 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    // 没有获取到数据或获取数据失败时重复获取数据
+    private int count = 0;
+    private Runnable reStartRequest =() -> {
+        if (count < 5) {
+            requestUserInfo();
+            count++;
+        }
+    };
+
     // 获取用户的绑定关系
     private void requestUserInfo() {
         Map<String, List<String>> param = new HashMap<>();
@@ -428,9 +442,6 @@ public class MainActivity extends AppCompatActivity {
                 .baseUrl(Api.BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
-
-        L.d("param", "param -> " + param.toString());
-
         ApiService service = retrofit.create(ApiService.class);
         Call<BuildBean> model = service.getBuild(param);
         model.enqueue(new Callback<BuildBean>() {
@@ -439,6 +450,9 @@ public class MainActivity extends AppCompatActivity {
                 BuildBean buildBean = response.body();
                 int code = buildBean.getCode();
                 if (IntegerConstant.RESULT_OK == code) {
+                    if (reStartRequest != null) {
+                        mHandler.removeCallbacks(reStartRequest);
+                    }
                     rMap = buildBean.getData();
                     List<String> tempList = new ArrayList<>();
                     for (Map.Entry<String, Map<String, String>> entry : rMap.entrySet()) {
@@ -446,13 +460,14 @@ public class MainActivity extends AppCompatActivity {
                     }
                     assemblyData(tempList);
                 } else {
-                    L.w("NoData", "没有获取到用户绑定数据或没有用户绑定数据");
+                    mHandler.postDelayed(reStartRequest, 2000L);
+                    L.w("requestUserInfo", "没有获取到用户绑定数据或没有用户绑定数据");
                 }
             }
 
             @Override
             public void onFailure(Throwable t) {
-                L.w("LoadFail", "连接服务器失败");
+                L.w("requestUserInfo", "连接服务器失败");
             }
         });
     }
@@ -532,7 +547,6 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Throwable t) {
-
             }
         });
     }

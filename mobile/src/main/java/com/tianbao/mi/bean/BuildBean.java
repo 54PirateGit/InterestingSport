@@ -16,11 +16,4 @@ public class BuildBean {
     private Map<String, Map<String, String>> data;
 
     private String message;
-
-    // map key
-//    avatar;
-//    nick;
-//    sex;
-//    openId;
-
 }

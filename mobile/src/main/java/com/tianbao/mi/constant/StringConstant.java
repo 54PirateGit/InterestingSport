@@ -114,7 +114,10 @@ public class StringConstant {
     // 播放背景音乐  第一名换人了
     public final static String SOUND_YES = "SOUND_YES";
 
-    // 数据传递  轮播图
+    // 数据传递  轮播图 上
     public final static String BANNER_LIST_UP = "BANNER_LIST_UP";
+
+    // 数据传递  轮播图 下
+    public final static String BANNER_LIST_DOWN = "BANNER_LIST_DOWN";
 
 }

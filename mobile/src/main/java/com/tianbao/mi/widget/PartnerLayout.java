@@ -24,8 +24,6 @@ public class PartnerLayout extends LinearLayout {
     private List<PartnerView> tList;
     private boolean isLoop;
 
-    private int count = 6;
-
     public PartnerLayout(Context context) {
         super(context);
         mContext = context;
@@ -96,6 +94,11 @@ public class PartnerLayout extends LinearLayout {
     public void setPartnerView(PartnerView view) {
         if (vList == null) vList = new ArrayList<>();
         vList.add(view);
+
+        if (!isLoop) {
+            mHandler.post(mLoopListRunnable);
+            isLoop = true;
+        }
     }
 
     // 将瘾伙伴加到列表中
@@ -127,44 +130,4 @@ public class PartnerLayout extends LinearLayout {
     }
 
     private int position = 0;// 当前所在位置
-
-    // 循环展示
-//    private Runnable mLoopListRunnable = new Runnable() {
-//        @Override
-//        public void run() {
-//            if (vList != null) {
-//                if (vList.size() > 0 && vList.size() <= count) {
-//                    removeAllViews();
-//                    position = 0;
-//                    for (int i = 0; i < vList.size(); i++) {
-//                        if (getChildCount() <= count) {
-//                            addView(vList.get(i));
-//                        }
-//                        position++;
-//                    }
-//                } else if (vList.size() > count) {
-//                    if (getChildCount() < count) {
-//                        for (int i=0; i<count; i++) {
-//                            addView(vList.get(i));
-//                            position++;
-//                        }
-//                    } else {
-//                        removeViewAt(0);
-//                        addView(vList.get(position));
-//                        position++;
-//                        if (position == vList.size()) {
-//                            position = 0;
-//                        }
-//                    }
-//                }
-//
-//                for (int i = 0; i < getChildCount(); i++) {
-//                    PartnerView child = (PartnerView) getChildAt(i);
-//                    child.setAlpha(0.5f);
-//                }
-//                invalidate();
-//            }
-//            mHandler.postDelayed(this, 5000L);
-//        }
-//    };
 }

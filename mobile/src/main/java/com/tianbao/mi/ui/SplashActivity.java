@@ -13,6 +13,7 @@ import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
 import com.tianbao.mi.R;
+import com.tianbao.mi.app.MyApp;
 import com.tianbao.mi.bean.UploadData;
 import com.tianbao.mi.bean.CourseInfoBean;
 import com.tianbao.mi.bean.LoginBean;
@@ -59,6 +60,8 @@ public class SplashActivity extends Activity {
     private void initView() {
         advertisement = findViewById(R.id.advertisement);
 
+//        Picasso.with(mContext).load(R.drawable.d3).into(advertisement);
+
         init();
     }
 
@@ -79,12 +82,7 @@ public class SplashActivity extends Activity {
             } else {
                 StringConstant.STORE_NAME = name;
             }
-            if (TextUtils.isEmpty(StringConstant.DEVICE_ID) || StringConstant.DEVICE_ID.equals("1")) {
-                startActivity(new Intent(mContext, StandbyActivity.class));// 没有课程信息
-                finish();
-            } else {
-                requestApp(StringConstant.DEVICE_ID);
-            }
+            requestApp(StringConstant.DEVICE_ID);
         }
     }
 
@@ -142,7 +140,8 @@ public class SplashActivity extends Activity {
                 LoginBean bean = response.body();
                 if (bean != null) {
                     Intent intent = new Intent(mContext, StandbyActivity.class);
-                    ArrayList<String> bannerList = null;
+                    ArrayList<String> upList = null;
+                    ArrayList<String> downList = null;
                     int code = bean.getCode();
                     if (code == IntegerConstant.RESULT_OK) {
                         LoginBean.DataBean dBean = bean.getData();
@@ -170,27 +169,56 @@ public class SplashActivity extends Activity {
                         L.i("refresh", "用户关系刷新时间：" + IntegerConstant.REFRESH_RELATION__FREQUENCY);
                         L.i("refresh", "界面排序刷新时间：" + IntegerConstant.SORT_FREQUENCY);
 
-                        // 将轮播图地址传递到待机页  如果有数据待机页就直接展示不需要重复获取
-                        String adUrls = dBean.getStandbyUpAdUrl();
-                        if (!TextUtils.isEmpty(adUrls)) {
-                            if (adUrls.contains("，")) {
-                                adUrls = adUrls.replace("，", ",");
+                        // 待机页上面轮播图地址
+                        String upUrls = dBean.getStandbyUpAdUrl();
+                        if (!TextUtils.isEmpty(upUrls)) {
+                            if (upUrls.contains("，")) {
+                                upUrls = upUrls.replace("，", ",");
                             }
-                            String[] adUrlArr = adUrls.split(",");
+                            String[] adUrlArr = upUrls.split(",");
                             for (String url : adUrlArr) {
-                                if (bannerList == null) bannerList = new ArrayList<>();
-                                bannerList.add(url);
+                                if (upList == null) upList = new ArrayList<>();
+                                upList.add(url);
                             }
                         }
-                        if (bannerList != null && bannerList.size() > 0) {
-                            L.d("bannerList", "bannerList size - > " + bannerList.size());
-                            intent.putStringArrayListExtra(StringConstant.BANNER_LIST_UP, bannerList);
+
+                        if (upList != null && upList.size() > 0) {
+                            L.d("upList", "upList size - > " + upList.size());
+                            intent.putStringArrayListExtra(StringConstant.BANNER_LIST_UP, upList);
+                        }
+
+                        // 待机页下面轮播图地址
+                        String downUrl = dBean.getStandbyDownAdUrl();
+                        if (!TextUtils.isEmpty(downUrl)) {
+                            if (downUrl.contains("，")) {
+                                downUrl = downUrl.replace("，", ",");
+                            }
+                            String[] downUrlArr = downUrl.split(",");
+                            for (String url : downUrlArr) {
+                                if (downList == null) downList = new ArrayList<>();
+                                downList.add(url);
+                            }
+                        }
+
+                        // 加载界面图片地址
+                        String leftUrl = dBean.getLoadLeftAdUrl();
+                        String rightUrl = dBean.getLoadRightAdUrl();
+                        if (!TextUtils.isEmpty(leftUrl)) {
+                            MyApp.setLoadUrl(leftUrl);
+                        }
+                        if (!TextUtils.isEmpty(rightUrl)) {
+                            MyApp.setLoadUrl(rightUrl);
+                        }
+
+                        if (downList != null && downList.size() > 0) {
+                            L.d("downList", "downList size - > " + downList.size());
+                            intent.putStringArrayListExtra(StringConstant.BANNER_LIST_DOWN, downList);
                         }
 
                         new Handler().postDelayed(() -> {
                             startActivity(intent);
                             finish();
-                        }, 2000L);
+                        }, 8000L);
                     } else {
                         startActivity(new Intent(mContext, StandbyActivity.class));// 没有课程信息
                         finish();

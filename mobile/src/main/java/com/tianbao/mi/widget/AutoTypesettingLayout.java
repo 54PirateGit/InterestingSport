@@ -101,9 +101,4 @@ public class AutoTypesettingLayout extends LinearLayout {
         set.setDuration(1000L);
         set.start();
     }
-
-    // 获取子 View 个数
-    public int childCount() {
-        return getChildCount();
-    }
 }

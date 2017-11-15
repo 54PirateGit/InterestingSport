@@ -29,10 +29,10 @@ import com.tianbao.mi.adapter.LiveListAdapter;
 import com.tianbao.mi.app.MyApp;
 import com.tianbao.mi.bean.BuildBean;
 import com.tianbao.mi.bean.CourseInfoBean;
+import com.tianbao.mi.bean.CurrencyBean;
 import com.tianbao.mi.bean.LiveCourseBean;
 import com.tianbao.mi.bean.PartnerBean;
 import com.tianbao.mi.bean.PartnerTipBean;
-import com.tianbao.mi.bean.CurrencyBean;
 import com.tianbao.mi.constant.IntegerConstant;
 import com.tianbao.mi.constant.StringConstant;
 import com.tianbao.mi.net.Api;
@@ -96,11 +96,12 @@ public class StandbyActivity extends Activity {
     private final static long LOOP_TIME = 3 * 60 * 1000L;// 隔一定时间去获取课程信息
 
     private List<LiveCourseBean.DataBean> dList;// 保存直播课程信息
-    private ArrayList<String> kList = new ArrayList<>();
     private List<String> key = new ArrayList<>();
     private List<PartnerTipBean> pList;
+    private List<String> ids = new ArrayList<>();
 
-    private ArrayList<String> bannerList = new ArrayList<>();
+    private ArrayList<String> upList = new ArrayList<>();
+    private ArrayList<String> downList = new ArrayList<>();
 
     private void setKey() {
         int storeId = (int) SPUtils.get(mContext, StringConstant.STORE_ID_SP_KEY, 1);
@@ -138,7 +139,6 @@ public class StandbyActivity extends Activity {
 
 //        isLoop = false;
 //        Intent intent = new Intent(StandbyActivity.this, LoadActivity.class);
-//        intent.putStringArrayListExtra(StringConstant.USER_KEY, kList);
 //        startActivity(intent);// 进入加载
 //        finish();
     }
@@ -161,26 +161,46 @@ public class StandbyActivity extends Activity {
     private void initBanner() {
         Intent intent = getIntent();
         if (intent != null) {
-            bannerList = intent.getStringArrayListExtra(StringConstant.BANNER_LIST_UP);
+            upList = intent.getStringArrayListExtra(StringConstant.BANNER_LIST_UP);
+            downList = intent.getStringArrayListExtra(StringConstant.BANNER_LIST_DOWN);
         }
 
-        // 轮播图
-        BannerAdapter bannerAdapter = new BannerAdapter(mContext, 200);
-        bannerAdapter.setData(bannerList);
-        banner.setDotGravity(Banner.CENTER).
-                setDot(R.drawable.no_selected_dot, R.drawable.selected_dot).
-                setAdapter(bannerAdapter);
-
-        if (bannerList.size() > 1) {
-            banner.startAutoPlay();//  自动播放轮播图
+        if (upList == null || upList.size() == 0) {
+            banner.setAlpha(0.5f);
         } else {
-            banner.stopAutoPlay();
+            banner.setAlpha(1.0f);
+
+            // 轮播图
+            BannerAdapter bannerAdapter = new BannerAdapter(mContext, 200);
+            bannerAdapter.setData(upList);
+            banner.setDotGravity(Banner.CENTER).
+                    setDot(R.drawable.no_selected_dot, R.drawable.selected_dot).
+                    setAdapter(bannerAdapter);
+
+            if (upList.size() > 1) {
+                banner.startAutoPlay();//  自动播放轮播图
+            } else {
+                banner.stopAutoPlay();
+            }
         }
 
-        if (bannerList.size() == 0) banner.setAlpha(0.5f);
-        else banner.setAlpha(1.0f);
+        if (downList == null || downList.size() == 0) {
+            advertisement.setAlpha(0.5f);
+        } else {
+            advertisement.setAlpha(1.0f);
 
-        advertisement.setAlpha(0.5f);
+            BannerAdapter bannerAdapter1 = new BannerAdapter(mContext, 200);
+            bannerAdapter1.setData(downList);
+            advertisement.setDotGravity(Banner.CENTER).
+                    setDot(R.drawable.no_selected_dot, R.drawable.selected_dot).
+                    setAdapter(bannerAdapter1);
+
+            if (downList.size() > 1) {
+                advertisement.startAutoPlay();//  自动播放轮播图
+            } else {
+                advertisement.stopAutoPlay();
+            }
+        }
     }
 
     // 轮询获取课程信息
@@ -200,6 +220,15 @@ public class StandbyActivity extends Activity {
         public void run() {
             requestLiveList();
             mHandler.postDelayed(this, 5 * 60 * 1000L);
+        }
+    };
+
+    // 没有获取到数据或获取数据失败时重复请求
+    private int count = 0;
+    private Runnable reStartRequest = () -> {
+        if (count < 5) {
+            requestLiveList();
+            count++;
         }
     };
 
@@ -224,6 +253,9 @@ public class StandbyActivity extends Activity {
 
                 int code = courseBean.getCode();
                 if (code == IntegerConstant.RESULT_OK) {
+                    if (reStartRequest != null) {
+                        mHandler.removeCallbacks(reStartRequest);
+                    }
                     dList = courseBean.getData();
                     if (dList == null || dList.size() <= 0) return ;
                     if (dList.size() <= 3) imageMore.setVisibility(View.INVISIBLE);
@@ -238,18 +270,20 @@ public class StandbyActivity extends Activity {
 
                         mHandler.postDelayed(() -> {
                             if (MyApp.getCourseId() != 0) request();
-                        }, 5000L);
+                        }, 15000L);
                     } else {// 界面有更新
                         adapter.notifyDataSetChanged();
                     }
                 } else {
-                    Toast.makeText(mContext, "获取课程信息失败，请稍后重试", Toast.LENGTH_LONG).show();
+                    mHandler.postDelayed(reStartRequest, 2000L);
+
+                    L.d("requestLiveList", "requestLiveList 获取课程信息失败，请稍后重试");
                 }
             }
 
             @Override
             public void onFailure(Throwable t) {
-                Toast.makeText(mContext, "连接服务器失败", Toast.LENGTH_LONG).show();
+                L.d("requestLiveList", "requestLiveList 连接服务器失败");
             }
         });
     }
@@ -285,10 +319,10 @@ public class StandbyActivity extends Activity {
                             }
                         }
                         adapter.setList(dList);
-                        mHandler.postDelayed(() -> request(), 5000L);
+                        mHandler.postDelayed(() -> request(), 15000L);
                     }
                 } else {
-                    Toast.makeText(mContext, "获取课程信息失败，请重试", Toast.LENGTH_LONG).show();
+                    L.d("selectLiveList", "selectLiveList 获取课程信息失败，请重试");
                 }
             }
 
@@ -296,7 +330,7 @@ public class StandbyActivity extends Activity {
             public void onFailure(Throwable t) {
                 if (dialogLoading != null) dialogLoading.dismiss();
                 isLoad = false;
-                Toast.makeText(mContext, "连接服务器失败", Toast.LENGTH_LONG).show();
+                L.d("selectLiveList", "selectLiveList 连接服务器失败");
             }
         });
     }
@@ -336,10 +370,10 @@ public class StandbyActivity extends Activity {
                             }
                         }
                         adapter.setList(dList);
-                        mHandler.postDelayed(() -> request(), 5000L);
+                        mHandler.postDelayed(() -> request(), 15000L);
                     }
                 } else {
-                    Toast.makeText(mContext, "获取课程信息失败，请重试", Toast.LENGTH_LONG).show();
+                    L.d("changeLiveList", "changeLiveList 获取课程信息失败，请重试");
                 }
             }
 
@@ -347,7 +381,7 @@ public class StandbyActivity extends Activity {
             public void onFailure(Throwable t) {
                 if (dialogLoading != null) dialogLoading.dismiss();
                 isLoad = false;
-                Toast.makeText(mContext, "连接服务器失败", Toast.LENGTH_LONG).show();
+                L.d("changeLiveList", "changeLiveList 连接服务器失败");
             }
         });
     }
@@ -390,7 +424,6 @@ public class StandbyActivity extends Activity {
 
                             isLoop = false;
                             Intent intent = new Intent(StandbyActivity.this, LoadActivity.class);
-                            intent.putStringArrayListExtra(StringConstant.USER_KEY, kList);
                             startActivity(intent);// 进入加载
                             finish();
                         }
@@ -420,8 +453,6 @@ public class StandbyActivity extends Activity {
                 requestUserInfo(tempList);
 
                 L.d("tempList", "tempList -> " + tempList.toString());
-
-                SoundPlayUtils.play(1);// 播放背景音乐  有新的瘾伙伴加入
             } else if (action.equals(StringConstant.BROAD_START_COURSE)) {// 课程开始
                 mHandler.postDelayed(mIntoLiveRunnable, 5 * 1000L);
             }
@@ -445,7 +476,6 @@ public class StandbyActivity extends Activity {
         param.put("headIds", tempList);
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(Api.BASE_URL)
-//                .baseUrl("http://192.168.31.58:8080")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
@@ -464,74 +494,47 @@ public class StandbyActivity extends Activity {
                     L.v("response", buildBean.toString());
 
                     Map<String, Map<String, String>> rMap = buildBean.getData();
-                    if (kList == null || kList.size() <= 0) {
-                        if (kList == null) kList = new ArrayList<>();
 
-                        List<PartnerBean> list = new ArrayList<>();
-                        PartnerBean pBean;
+                    for (Map.Entry<String, Map<String, String>> entry : rMap.entrySet()) {
+                        System.out.println("key = " + entry.getKey() + " and value = " + entry.getValue());
 
-                        for (Map.Entry<String, Map<String, String>> entry : rMap.entrySet()) {
-                            System.out.println("key = " + entry.getKey() + " and value = " + entry.getValue());
-                            kList.add(entry.getKey());
+                        Map<String, String> map = entry.getValue();
+                        String id = map.get("userId");
+                        if (!TextUtils.isEmpty(id) && !ids.contains(id)) {
+                            ids.add(id);
 
                             // 提示有新的瘾伙伴加入
                             PartnerTipBean bean = new PartnerTipBean();
-                            Map<String, String> map = entry.getValue();
                             String name = map.get("nick");
                             if (TextUtils.isEmpty(name)) name = "NULL";
                             bean.setName(name);
-                            if (pList == null) pList = new ArrayList<>();
-                            pList.add(bean);
+                            if (scrollList.isJoinRun()) {
+                                scrollList.updatePartnerData(bean);
+                            } else {
+                                if (pList == null) pList = new ArrayList<>();
+                                pList.add(bean);
+                                scrollList.setPartnerList(pList);
+                            }
 
                             // 加入的瘾伙伴展示
-                            pBean = new PartnerBean();
+                            PartnerBean pBean = new PartnerBean();
                             pBean.setNick(name);
                             pBean.setHead(map.get("avatar"));
-                            list.add(pBean);
-                        }
-                        if (pList == null) pList = new ArrayList<>();
-                        scrollList.setPartnerList(pList);
-
-                        List<PartnerView> vList = new ArrayList<>();
-                        for (int i = 0; i < list.size(); i++) {
                             PartnerView view = new PartnerView(mContext);
-                            view.updateView(list.get(i));
-                            vList.add(view);
-                        }
-                        viewPartner.setList(vList);
-                    } else {
-                        for (Map.Entry<String, Map<String, String>> entry : rMap.entrySet()) {
-                            if (!kList.contains(entry.getKey())) {
-                                kList.add(entry.getKey());
+                            view.updateView(pBean);
+                            viewPartner.setPartnerView(view);
 
-                                // 提示有新的瘾伙伴加入
-                                PartnerTipBean bean = new PartnerTipBean();
-                                Map<String, String> map = entry.getValue();
-                                String name = map.get("nick");
-                                if (TextUtils.isEmpty(name)) name = "NULL";
-                                bean.setName(name);
-                                scrollList.updatePartnerData(bean);
-
-                                // 加入的瘾伙伴展示
-                                PartnerBean pBean = new PartnerBean();
-                                pBean.setNick(name);
-                                pBean.setHead(map.get("avatar"));
-
-                                PartnerView view = new PartnerView(mContext);
-                                view.updateView(pBean);
-                                viewPartner.setPartnerView(view);
-                            }
+                            SoundPlayUtils.play(1);// 播放背景音乐  有新的瘾伙伴加入
                         }
                     }
-
                 } else {
-                    Toast.makeText(mContext, "code == " + code, Toast.LENGTH_SHORT).show();
+                    L.d("requestUserInfo", "requestUserInfo 没有获取到数据或获取数据失败");
                 }
             }
 
             @Override
             public void onFailure(Throwable t) {
-                Toast.makeText(mContext, "errorCode != 0", Toast.LENGTH_SHORT).show();
+                L.d("requestUserInfo", "requestUserInfo 连接服务器失败");
             }
         });
     }
@@ -558,8 +561,8 @@ public class StandbyActivity extends Activity {
                 position++;
                 if (position == dList.size()) position = 0;
                 adapter.down(position);
-//                if (position >= 3) listLive.setSelection(position - 2);
-//                else if (position == 0) listLive.setSelection(position);
+                if (position >= 3) listLive.setSelection(position - 2);
+                else if (position == 0) listLive.setSelection(position);
                 listLive.setSelection(position);
             } else if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER || keyCode == KeyEvent.KEYCODE_ENTER) {// 确认
                 if (!dList.get(position).isSelect()) {

@@ -16,9 +16,4 @@ public class RecordBean {
     private Map<String, Map<String, String>> data;
 
     private String message;
-
-    // map key
-//    exerciseTime;
-//    heartRate;
-//    rate;
 }
