@@ -261,11 +261,20 @@ public class StandbyActivity extends Activity {
     };
 
     // 没有获取到数据或获取数据失败时重复请求
-    private int count = 0;
+    private int count1 = 0;
     private Runnable reStartRequest = () -> {
-        if (count < 5) {
+        if (count1 < 5) {
             requestLiveList();
-            count++;
+            count1++;
+        }
+    };
+
+    // 没有获取到数据或获取数据失败时重复请求
+    private int count2 = 0;
+    private Runnable reStartRequestDemand = () -> {
+        if (count2 < 5) {
+            requestOnDemandList();
+            count2++;
         }
     };
 
@@ -295,6 +304,7 @@ public class StandbyActivity extends Activity {
                         oAdapter.notifyDataSetChanged();
                     } else {
                         L.w("requestOnDemandList", "data is error");
+                        mHandler.postDelayed(reStartRequestDemand, 3000L);
                     }
                     if (isSelectLive) {
                         listDemand.setVisibility(View.GONE);
@@ -303,6 +313,7 @@ public class StandbyActivity extends Activity {
                     }
                 } else {
                     L.w("requestOnDemandList", "data is null");
+                    mHandler.postDelayed(reStartRequestDemand, 3000L);
                 }
             }
 
@@ -517,6 +528,7 @@ public class StandbyActivity extends Activity {
 
                             isLoop = false;
                             Intent intent = new Intent(StandbyActivity.this, LoadActivity.class);
+                            intent.putExtra(StringConstant.PLAY_TYPE, StringConstant.LIVE_PLAY_TYPE);
                             startActivity(intent);// 进入加载
                             finish();
                         }
@@ -556,6 +568,7 @@ public class StandbyActivity extends Activity {
     private Runnable mIntoLiveRunnable = () -> {
         isLoop = false;
         Intent intent = new Intent(StandbyActivity.this, LoadActivity.class);
+        intent.putExtra(StringConstant.PLAY_TYPE, StringConstant.LIVE_PLAY_TYPE);
         startActivity(intent);// 进入加载
         finish();
     };
@@ -650,21 +663,25 @@ public class StandbyActivity extends Activity {
                     if (isSelectLive) {
                         textLive.setBackground(getResources().getDrawable(R.drawable.tab_white_background));
                         textDemand.setBackground(null);
-                        lAdapter.up(-1);
+                        if (lAdapter != null) lAdapter.up(-1);
                     } else {
                         textDemand.setBackground(getResources().getDrawable(R.drawable.tab_white_background));
                         textLive.setBackground(null);
-                        oAdapter.up(-1);
+                        if (oAdapter != null) oAdapter.up(-1);
                     }
                     return true;
                 }
                 position--;
                 if (isSelectLive) {
                     lAdapter.up(position);
-                    listLive.setSelection(position);
+                    if (listLive.getLastVisiblePosition() != position + 1) {
+                        listLive.setSelection(position);
+                    }
                 } else {
                     oAdapter.up(position);
-                    listDemand.setSelection(position);
+                    if (listDemand.getLastVisiblePosition() != position + 1) {
+                        listDemand.setSelection(position);
+                    }
                 }
             } else if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {// 左
                 if (isSelectTab) {
@@ -677,6 +694,12 @@ public class StandbyActivity extends Activity {
 
                         listDemand.setVisibility(View.GONE);
                         listLive.setVisibility(View.VISIBLE);
+
+                        if (dList != null && dList.size() > 3) {
+                            if (imageMore.getVisibility() == View.GONE) imageMore.setVisibility(View.VISIBLE);
+                        } else {
+                            if (imageMore.getVisibility() == View.VISIBLE) imageMore.setVisibility(View.GONE);
+                        }
                     }
                 }
 
@@ -689,6 +712,12 @@ public class StandbyActivity extends Activity {
 
                         listLive.setVisibility(View.GONE);
                         listDemand.setVisibility(View.VISIBLE);
+
+                        if (oList != null && oList.size() > 3) {
+                            if (imageMore.getVisibility() == View.GONE) imageMore.setVisibility(View.VISIBLE);
+                        } else {
+                            if (imageMore.getVisibility() == View.VISIBLE) imageMore.setVisibility(View.GONE);
+                        }
                     } else {// 此时选中的是点播课程列表
                         // 点播列表已是最右边的 TAB  不做处理
                     }
@@ -717,15 +746,17 @@ public class StandbyActivity extends Activity {
                     if (position + 1 >= dList.size()) return true;
                     position++;
                     lAdapter.down(position);
-//                    if (position >= 3) listLive.setSelection(position - 2);
-//                    else if (position == 0) listLive.setSelection(position);
-                    listLive.setSelection(position);
+                    if (listLive.getLastVisiblePosition() < position) {
+                        listLive.setSelection(position - 2);
+                    }
                 } else {
                     if (oList == null || oList.size() == 0) return true;
                     if (position + 1 >= oList.size()) return true;
                     position++;
                     oAdapter.down(position);
-                    listDemand.setSelection(position);
+                    if (listDemand.getLastVisiblePosition() < position) {
+                        listDemand.setSelection(position - 2);
+                    }
                 }
             } else if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER || keyCode == KeyEvent.KEYCODE_ENTER) {// 确认
                 if (isSelectTab) return true;
@@ -742,6 +773,7 @@ public class StandbyActivity extends Activity {
                     }
                 } else {// 焦点在点播列表中
                     Intent intent = new Intent(StandbyActivity.this, LoadActivity.class);
+                    intent.putExtra(StringConstant.PLAY_TYPE, StringConstant.DEMAND_PLAY_TYPE);
                     startActivity(intent);// 进入加载
                 }
             } else if (keyCode == KeyEvent.KEYCODE_BACK) {

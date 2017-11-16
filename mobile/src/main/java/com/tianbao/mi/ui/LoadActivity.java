@@ -37,6 +37,7 @@ public class LoadActivity extends AppCompatActivity {
     ImageView imageRight;// 右边图片
 
     private Context mContext;
+    private String playType;// 标识 点播 or 直播
 
     private void setFront() {
         Typeface tf = Typeface.createFromAsset(getAssets(), "font/FZKTJT.ttf");
@@ -52,6 +53,10 @@ public class LoadActivity extends AppCompatActivity {
         ButterKnife.bind(this);
         setFront();
         initView();
+
+        Intent intent = getIntent();
+        if (intent == null) return ;
+        playType = intent.getStringExtra(StringConstant.PLAY_TYPE);
     }
 
     boolean isRun = true;// 控制加载进度的线程
@@ -90,6 +95,7 @@ public class LoadActivity extends AppCompatActivity {
                 } else if (i == 100) {
                     // 跳转到主界面将数据展示
                     Intent intentToMain = new Intent(mContext, MainActivity.class);
+                    intentToMain.putExtra(StringConstant.PLAY_TYPE, playType);
                     startActivity(intentToMain);
                     isRun = false;// 停止线程
                     finish();

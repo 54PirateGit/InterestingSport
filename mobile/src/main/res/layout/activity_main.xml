@@ -66,6 +66,7 @@
             android:id="@+id/living"
             android:layout_width="88dp"
             android:layout_height="26dp"
+            android:visibility="gone"
             android:background="@drawable/zhibozhong"
             android:layout_alignParentRight="true"/>
 

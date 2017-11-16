@@ -66,7 +66,11 @@ public class CourseEndActivity extends Activity {
         try {
             mp = MediaPlayer.create(CourseEndActivity.this, R.raw.course_end1);// 重新设置要播放的音频
             mp.start();// 开始播放
-            mp.setOnCompletionListener(m -> playSound());
+            mp.setOnCompletionListener(m -> {
+//                playSound();
+                mp = MediaPlayer.create(mContext, R.raw.course_end2);
+                mp.start();
+            });
         } catch (Exception e) {
             e.printStackTrace();// 输出异常信息
         }

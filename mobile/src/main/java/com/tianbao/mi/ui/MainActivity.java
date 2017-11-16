@@ -9,6 +9,8 @@ import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.view.KeyEvent;
+import android.view.View;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
@@ -63,6 +65,8 @@ public class MainActivity extends AppCompatActivity {
 
     @BindView(R.id.view_info)
     RelativeLayout viewInfo;// 底部信息板
+    @BindView(R.id.living)
+    ImageView imageLiving;// 直播中  点播进来时不需要显示
 
     @BindView(R.id.auto_scroll_list)
     AutoScrollListView autoScrollListView;
@@ -80,6 +84,8 @@ public class MainActivity extends AppCompatActivity {
 
     private List<String> dKey = new ArrayList<>();// key
 
+    private String playType;// 标识  点播 or 直播
+
     // 注册广播
     private void registerBroad() {
         IntentFilter filter = new IntentFilter();
@@ -93,6 +99,12 @@ public class MainActivity extends AppCompatActivity {
         mVV = (BDCloudVideoView) findViewById(R.id.bd_player);
         mVV.setVideoPath(StringConstant.LIVE_URL);
         mVV.setVideoScalingMode(BDCloudVideoView.VIDEO_SCALING_MODE_SCALE_TO_FIT);
+        mVV.setOnCompletionListener(iMediaPlayer -> {
+            mHandler.postDelayed(() -> {
+//                startActivity(new Intent(mContext, CourseEndActivity.class));// 跳转到课程结束界面
+//                finish();
+            }, 5 * 1000L);
+        });
         mVV.start();
     }
 
@@ -119,6 +131,16 @@ public class MainActivity extends AppCompatActivity {
 
         initPlayer();// 初始化播放器
         initView();
+
+        Intent intent = getIntent();
+        if (intent == null) return ;
+        playType = intent.getStringExtra(StringConstant.PLAY_TYPE);
+
+        if (playType.equals(StringConstant.DEMAND_PLAY_TYPE)) {
+            imageLiving.setVisibility(View.GONE);
+        } else {
+            imageLiving.setVisibility(View.VISIBLE);
+        }
     }
 
     @Override
@@ -471,7 +493,7 @@ public class MainActivity extends AppCompatActivity {
                 BuildBean buildBean = response.body();
                 int code = buildBean.getCode();
                 if (IntegerConstant.RESULT_OK == code) {
-                    if (reStartRequest != null) {
+                    if (mHandler!= null && reStartRequest != null) {
                         mHandler.removeCallbacks(reStartRequest);
                     }
                     rMap = buildBean.getData();
@@ -593,13 +615,17 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
-            long currentTime = System.currentTimeMillis();
-            if (currentTime - time > 2000L) {
-                Toast.makeText(mContext, "再按一次返回键退出程序", Toast.LENGTH_LONG).show();
-                time = currentTime;
+            if (playType.equals(StringConstant.LIVE_PLAY_TYPE)) {
+                long currentTime = System.currentTimeMillis();
+                if (currentTime - time > 2000L) {
+                    Toast.makeText(mContext, "再按一次返回键退出程序", Toast.LENGTH_LONG).show();
+                    time = currentTime;
+                } else {
+                    finish();
+                    MyApp.appExit();
+                }
             } else {
                 finish();
-                MyApp.appExit();
             }
             return true;
         }

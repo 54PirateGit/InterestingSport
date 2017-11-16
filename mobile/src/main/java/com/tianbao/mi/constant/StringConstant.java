@@ -120,4 +120,12 @@ public class StringConstant {
     // 数据传递  轮播图 下
     public final static String BANNER_LIST_DOWN = "BANNER_LIST_DOWN";
 
+    public final static String PLAY_TYPE = "PLAY_TYPE";
+
+    // 标识 点播
+    public final static String DEMAND_PLAY_TYPE = "DEMAND_PLAY_TYPE";
+
+    // 标识 直播
+    public final static String LIVE_PLAY_TYPE = "LIVE_PLAY_TYPE";
+
 }
