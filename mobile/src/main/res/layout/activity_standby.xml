@@ -58,8 +58,9 @@
             <LinearLayout
                 android:id="@+id/view_tab"
                 android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:visibility="gone"
+                android:layout_height="28dp"
+                android:visibility="visible"
+                android:layout_marginTop="10dp"
                 android:layout_below="@id/text_name"
                 android:orientation="horizontal">
 
@@ -68,8 +69,9 @@
                     android:layout_width="0dp"
                     android:layout_weight="1"
                     android:layout_height="match_parent"
-                    android:text="直播课程"
-                    android:textSize="20sp"
+                    android:text="直播"
+                    android:textSize="15sp"
+                    android:background="@drawable/tab_background"
                     android:textColor="@color/white"
                     android:gravity="center"/>
 
@@ -78,10 +80,21 @@
                     android:layout_width="0dp"
                     android:layout_weight="1"
                     android:layout_height="match_parent"
-                    android:text="精品课程"
-                    android:textSize="20sp"
+                    android:text="历史精选"
+                    android:textSize="15sp"
+                    android:layout_marginLeft="10dp"
                     android:textColor="@color/white"
                     android:gravity="center"/>
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"/>
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"/>
 
             </LinearLayout>
 
@@ -90,11 +103,12 @@
                 android:layout_width="26dp"
                 android:layout_height="13dp"
                 android:background="@drawable/xiangxia"
-                android:layout_marginBottom="85dp"
+                android:layout_marginBottom="50dp"
                 android:layout_alignParentBottom="true"
                 android:visibility="invisible"
                 android:layout_centerHorizontal="true"/>
 
+            <!--直播课程列表-->
             <ListView
                 android:id="@+id/list_live_course"
                 android:layout_width="match_parent"
@@ -104,7 +118,19 @@
                 android:dividerHeight="20dp"
                 android:layout_below="@id/view_tab"
                 android:layout_gravity="center"
-                android:layout_marginTop="10dp"/>
+                android:layout_marginTop="15dp"/>
+
+            <!--点播课程列表-->
+            <ListView
+                android:id="@+id/list_demand_course"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:scrollbars="none"
+                android:divider="#00000000"
+                android:dividerHeight="20dp"
+                android:layout_below="@id/view_tab"
+                android:layout_gravity="center"
+                android:layout_marginTop="15dp"/>
 
             <LinearLayout
                 android:layout_width="wrap_content"

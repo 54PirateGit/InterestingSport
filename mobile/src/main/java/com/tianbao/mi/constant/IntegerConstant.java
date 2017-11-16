@@ -52,4 +52,22 @@ public class IntegerConstant {
     // 标识  用户绑定数据
     public final static int IDEN_USER_BINDING_DATA = 1;
 
+    // 正常心率范围内的最小心率值
+    public final static int MIN_HEAR_RATE = 60;
+
+    // 放松热身
+    public final static int RELAX_HEAR_RATE = 90;
+
+    // 燃烧脂肪
+    public final static int BURNING_HEAR_RATE = 120;
+
+    // 糖原消耗
+    public final static int CONSUME_HEAR_RATE = 144;
+
+    // 乳酸堆积
+    public final static int ACCUMULATION_HEAR_RATE = 170;
+
+    // 高强度运动时最大心率值
+    public final static int MAX_HEAR_RATE = 195;
+
 }

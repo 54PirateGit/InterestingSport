@@ -47,6 +47,7 @@ public class AutoTypesettingLayout extends LinearLayout {
             child.setLayoutParams(layoutParams);
 
             child.sort();
+            child.updateView();
         }
         invalidate();
     }

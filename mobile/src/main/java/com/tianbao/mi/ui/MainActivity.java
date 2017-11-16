@@ -116,9 +116,30 @@ public class MainActivity extends AppCompatActivity {
         mContext = this;
 
         setKey();// 所有 key
-        registerBroad();// 注册广播
+
         initPlayer();// 初始化播放器
         initView();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        registerBroad();// 注册广播
+
+//        if (mVV != null && !mVV.isPlaying() && !TextUtils.isEmpty(StringConstant.LIVE_URL) && !StringConstant.LIVE_URL.equals("-1")) {
+//            mVV.start();
+//        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (mReceiver != null) {
+            unregisterReceiver(mReceiver);
+        }
+//        if (mVV != null && mVV.isPlaying()) {
+//            mVV.pause();
+//        }
     }
 
     // 初始化视图
@@ -588,10 +609,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (mReceiver != null) {
-            unregisterReceiver(mReceiver);
-            mReceiver = null;
-        }
         if (mVV != null) {
             mVV.release();
             mVV = null;

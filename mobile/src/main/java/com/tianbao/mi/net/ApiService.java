@@ -1,12 +1,13 @@
 package com.tianbao.mi.net;
 
-import com.tianbao.mi.bean.UploadData;
 import com.tianbao.mi.bean.BuildBean;
 import com.tianbao.mi.bean.CourseInfoBean;
 import com.tianbao.mi.bean.CurrencyBean;
 import com.tianbao.mi.bean.LiveCourseBean;
 import com.tianbao.mi.bean.LoginBean;
+import com.tianbao.mi.bean.OnDemandCourseBean;
 import com.tianbao.mi.bean.RecordBean;
+import com.tianbao.mi.bean.UploadData;
 import com.tianbao.mi.bean.UploadDataBean;
 
 import java.util.List;
@@ -62,4 +63,8 @@ public interface ApiService {
     // 获取配置信息
     @POST(Api.GET_APP)
     Call<LoginBean> getApp(@QueryMap Map<String,String> param);
+
+    // 获取点播列表
+    @POST(Api.GET_ON_DEMAND_LIST)
+    Call<OnDemandCourseBean> getOnDemandList();
 }

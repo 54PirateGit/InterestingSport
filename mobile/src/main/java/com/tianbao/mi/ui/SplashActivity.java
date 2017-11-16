@@ -218,7 +218,7 @@ public class SplashActivity extends Activity {
                         new Handler().postDelayed(() -> {
                             startActivity(intent);
                             finish();
-                        }, 8000L);
+                        }, 6000L);
                     } else {
                         startActivity(new Intent(mContext, StandbyActivity.class));// 没有课程信息
                         finish();
@@ -250,23 +250,19 @@ public class SplashActivity extends Activity {
         MotionData mData = new MotionData();
         mData.setCourseId(99);
         mData.setAverageHeartRate(100);// 平均心率
-        mData.setAverageVelocity(100);// 平均速度
         mData.setCalorie(98.9f);
         mData.setStatus(1);
         mData.setMaximumHeartRate(100);
         mData.setExerciseDuration(20);
         mData.setMileage(100);
-        mData.setTopSpeed(90);
         mData.setUserId(47);
         mDataList.add(mData);
 
         mData = new MotionData();
         mData.setCourseId(99);
-        mData.setAverageHeartRate(78);
         mData.setAverageVelocity(34);
         mData.setCalorie(37.9f);
         mData.setStatus(1);
-        mData.setMaximumHeartRate(36);
         mData.setExerciseDuration(20);
         mData.setMileage(100);
         mData.setTopSpeed(90);

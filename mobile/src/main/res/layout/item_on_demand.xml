@@ -89,19 +89,4 @@
 
     </LinearLayout>
 
-    <LinearLayout
-        android:layout_width="0dp"
-        android:layout_weight="1"
-        android:layout_height="match_parent"
-        android:gravity="center">
-
-        <ImageView
-            android:id="@+id/image_select"
-            android:layout_width="22dp"
-            android:layout_height="22dp"
-            android:visibility="gone"
-            android:background="@drawable/xuanz"/>
-
-    </LinearLayout>
-
 </LinearLayout>

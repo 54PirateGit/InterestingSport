@@ -26,11 +26,13 @@ import com.squareup.picasso.Picasso;
 import com.tianbao.mi.R;
 import com.tianbao.mi.adapter.BannerAdapter;
 import com.tianbao.mi.adapter.LiveListAdapter;
+import com.tianbao.mi.adapter.OnDemandAdapter;
 import com.tianbao.mi.app.MyApp;
 import com.tianbao.mi.bean.BuildBean;
 import com.tianbao.mi.bean.CourseInfoBean;
 import com.tianbao.mi.bean.CurrencyBean;
 import com.tianbao.mi.bean.LiveCourseBean;
+import com.tianbao.mi.bean.OnDemandCourseBean;
 import com.tianbao.mi.bean.PartnerBean;
 import com.tianbao.mi.bean.PartnerTipBean;
 import com.tianbao.mi.constant.IntegerConstant;
@@ -76,6 +78,8 @@ public class StandbyActivity extends Activity {
     TextView textName;// 店名
     @BindView(R.id.list_live_course)
     ListView listLive;// 直播课程列表
+    @BindView(R.id.list_demand_course)
+    ListView listDemand;// 点播课程列表
     @BindView(R.id.text_year)
     TextView textYear;// 当前年份
     @BindView(R.id.view_partner)
@@ -84,17 +88,25 @@ public class StandbyActivity extends Activity {
     AutoScrollListView scrollList;// 新加入瘾伙伴提示信息
     @BindView(R.id.image_more)
     ImageView imageMore;// 标识有更多直播数据
+    @BindView(R.id.text_live)
+    TextView textLive;// tab 直播
+    @BindView(R.id.text_demand)
+    TextView textDemand;// tab 点播
 
     private Dialog dialogLoading;
     private boolean isLoad;
+    private boolean isSelectTab = false;// 焦点是否在 TAB 上  TAB 为选择直播或点播内容  默认焦点不是在 TAB 上  而是在直播列表中的第一条数据上
+    private boolean isSelectLive = true;// 焦点是否直播列表中  数据刚加载默认是显示直播列表
 
     private Context mContext;
-    private LiveListAdapter adapter;
+    private LiveListAdapter lAdapter;// 直播课程信息展示
+    private OnDemandAdapter oAdapter;// 点播课程信息展示
 
     private Handler mHandler = new Handler();
     private boolean isLoop = true;// 没有课程信息时每隔一段时间去获取
     private final static long LOOP_TIME = 3 * 60 * 1000L;// 隔一定时间去获取课程信息
 
+    private List<OnDemandCourseBean.DataBean> oList;// 保存点播课程信息
     private List<LiveCourseBean.DataBean> dList;// 保存直播课程信息
     private List<String> key = new ArrayList<>();
     private List<PartnerTipBean> pList;
@@ -133,7 +145,6 @@ public class StandbyActivity extends Activity {
         mContext = this;
         ButterKnife.bind(this);
 
-        registerBroad();// 注册广播
         setKey();// 全部 key
         initView();
 
@@ -141,6 +152,32 @@ public class StandbyActivity extends Activity {
 //        Intent intent = new Intent(StandbyActivity.this, LoadActivity.class);
 //        startActivity(intent);// 进入加载
 //        finish();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        registerBroad();// 注册广播
+        mHandler.post(mLoopLiveListRunnable);
+        if (isLoop) {
+            mHandler.postDelayed(mLoopRequestRunnable, LOOP_TIME);
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        if (mLoopLiveListRunnable != null) {
+            mHandler.removeCallbacks(mLoopLiveListRunnable);
+        }
+        if (mLoopRequestRunnable != null) {
+            mHandler.removeCallbacks(mLoopRequestRunnable);
+        }
+        if (mReceiver != null) {
+            unregisterReceiver(mReceiver);
+        }
     }
 
     // 初始化视图
@@ -151,10 +188,10 @@ public class StandbyActivity extends Activity {
         textYear.setText(StringConstant.TIME_YEAR);
         initBanner();
 
-        mHandler.post(mLoopLiveListRunnable);
-
         requestUserInfo(key);
         scrollList.setAlpha(0.5f);
+
+        mHandler.postDelayed(() -> requestOnDemandList(), 3000L);
     }
 
     // 初始化轮播图
@@ -232,6 +269,50 @@ public class StandbyActivity extends Activity {
         }
     };
 
+    // 获取点播课程列表
+    private void requestOnDemandList() {
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(Api.BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+        ApiService service = retrofit.create(ApiService.class);
+        Call<OnDemandCourseBean> model = service.getOnDemandList();
+        model.enqueue(new Callback<OnDemandCourseBean>() {
+            @Override
+            public void onResponse(Response<OnDemandCourseBean> response, Retrofit retrofit) {
+                OnDemandCourseBean bean = response.body();
+                if (bean != null) {
+                    int code = bean.getCode();
+                    if (code == IntegerConstant.RESULT_OK) {
+                        oList = bean.getData();
+                        if (oList == null || oList.size() <= 0) return;
+                        oAdapter = new OnDemandAdapter(mContext, oList);
+                        oAdapter.down(-1);
+                        listDemand.setAdapter(oAdapter);
+                        listDemand.setLayoutAnimation(getAnimationController());
+
+                        ListViewUtils.setListHeight(listDemand);
+                        oAdapter.notifyDataSetChanged();
+                    } else {
+                        L.w("requestOnDemandList", "data is error");
+                    }
+                    if (isSelectLive) {
+                        listDemand.setVisibility(View.GONE);
+                    } else {
+                        listDemand.setVisibility(View.VISIBLE);
+                    }
+                } else {
+                    L.w("requestOnDemandList", "data is null");
+                }
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                L.w("requestOnDemandList", "连接服务器失败");
+            }
+        });
+    }
+
     // 获取直播课程列表
     private void requestLiveList() {
         Map<String, String> param = new HashMap<>();
@@ -257,22 +338,34 @@ public class StandbyActivity extends Activity {
                         mHandler.removeCallbacks(reStartRequest);
                     }
                     dList = courseBean.getData();
-                    if (dList == null || dList.size() <= 0) return ;
+                    if (dList == null || dList.size() <= 0) {
+                        isSelectTab = true;
+                        textLive.setBackground(getResources().getDrawable(R.drawable.tab_white_background));
+                        textDemand.setBackground(null);
+                        return;
+                    }
+                    isSelectTab = false;
                     if (dList.size() <= 3) imageMore.setVisibility(View.INVISIBLE);
                     else imageMore.setVisibility(View.VISIBLE);
-                    if (adapter == null) {// 第一次进入界面时加载数据
-                        adapter = new LiveListAdapter(mContext, dList);
-                        listLive.setAdapter(adapter);
+                    if (lAdapter == null) {// 第一次进入界面时加载数据
+                        lAdapter = new LiveListAdapter(mContext, dList);
+                        listLive.setAdapter(lAdapter);
                         listLive.setLayoutAnimation(getAnimationController());
 
                         ListViewUtils.setListHeight(listLive);
-                        adapter.notifyDataSetChanged();
+                        lAdapter.notifyDataSetChanged();
 
                         mHandler.postDelayed(() -> {
                             if (MyApp.getCourseId() != 0) request();
                         }, 15000L);
                     } else {// 界面有更新
-                        adapter.notifyDataSetChanged();
+                        lAdapter.notifyDataSetChanged();
+                    }
+
+                    if (isSelectLive) {
+                        listLive.setVisibility(View.VISIBLE);
+                    } else {
+                        listLive.setVisibility(View.GONE);
                     }
                 } else {
                     mHandler.postDelayed(reStartRequest, 2000L);
@@ -310,15 +403,15 @@ public class StandbyActivity extends Activity {
                 if (bean == null) return;
                 int code = bean.getCode();
                 if (code == IntegerConstant.RESULT_OK) {
-                    if (adapter != null) {
-                        for (int i=0; i<dList.size(); i++) {
+                    if (lAdapter != null) {
+                        for (int i = 0; i < dList.size(); i++) {
                             if (i == position) {
                                 dList.get(i).setSelect(true);
                             } else {
                                 dList.get(i).setSelect(false);
                             }
                         }
-                        adapter.setList(dList);
+                        lAdapter.setList(dList);
                         mHandler.postDelayed(() -> request(), 15000L);
                     }
                 } else {
@@ -361,15 +454,15 @@ public class StandbyActivity extends Activity {
                     if (mIntoLiveRunnable != null) {
                         mHandler.removeCallbacks(mIntoLiveRunnable);
                     }
-                    if (adapter != null) {
-                        for (int i=0; i<dList.size(); i++) {
+                    if (lAdapter != null) {
+                        for (int i = 0; i < dList.size(); i++) {
                             if (i == position) {
                                 dList.get(i).setSelect(true);
                             } else {
                                 dList.get(i).setSelect(false);
                             }
                         }
-                        adapter.setList(dList);
+                        lAdapter.setList(dList);
                         mHandler.postDelayed(() -> request(), 15000L);
                     }
                 } else {
@@ -406,7 +499,7 @@ public class StandbyActivity extends Activity {
                 if (courseInfo == null) {
                     isLoop = true;
                     mHandler.postDelayed(mLoopRequestRunnable, LOOP_TIME);
-                    return ;
+                    return;
                 }
 
                 int code = courseInfo.getCode();
@@ -487,7 +580,7 @@ public class StandbyActivity extends Activity {
             @Override
             public void onResponse(Response<BuildBean> response, Retrofit retrofit) {
                 BuildBean buildBean = response.body();
-                if (buildBean == null) return ;
+                if (buildBean == null) return;
 
                 int code = buildBean.getCode();
                 if (IntegerConstant.RESULT_OK == code) {
@@ -544,36 +637,112 @@ public class StandbyActivity extends Activity {
     // 处理遥控器按键事件
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
-        if (isLoad || adapter == null) return super.dispatchKeyEvent(event);
+        if (isLoad || lAdapter == null) return super.dispatchKeyEvent(event);
         int keyCode = event.getKeyCode();
         if (event.getAction() == KeyEvent.ACTION_UP) {
             // up 事件,这里多数情况不需要处理
         } else {
             // down 事件或许可以直接覆盖 onKeyDown 方法, 而不是这个
             if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {// 上
-                position--;
-                if (position < 0) position = dList.size() - 1;
-                adapter.up(position);
-                listLive.setSelection(position);
-            } else if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {// 左
-            } else if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {// 右
-            } else if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {// 下
-                position++;
-                if (position == dList.size()) position = 0;
-                adapter.down(position);
-                if (position >= 3) listLive.setSelection(position - 2);
-                else if (position == 0) listLive.setSelection(position);
-                listLive.setSelection(position);
-            } else if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER || keyCode == KeyEvent.KEYCODE_ENTER) {// 确认
-                if (!dList.get(position).isSelect()) {
-                    dialogLoading = DialogUtils.dialogLoading(mContext);
-                    dialogLoading.show();
-                    isLoad = true;
-                    if (MyApp.getCourseId() == 0) {
-                        selectLiveList(adapter.getCourseId(position));
+                if (isSelectTab) return true;
+                if (position - 1 < 0) {// 焦点转移到 TAB 上
+                    isSelectTab = true;
+                    if (isSelectLive) {
+                        textLive.setBackground(getResources().getDrawable(R.drawable.tab_white_background));
+                        textDemand.setBackground(null);
+                        lAdapter.up(-1);
                     } else {
-                        changeLiveList(adapter.getCourseId(position), MyApp.getCourseId());
+                        textDemand.setBackground(getResources().getDrawable(R.drawable.tab_white_background));
+                        textLive.setBackground(null);
+                        oAdapter.up(-1);
                     }
+                    return true;
+                }
+                position--;
+                if (isSelectLive) {
+                    lAdapter.up(position);
+                    listLive.setSelection(position);
+                } else {
+                    oAdapter.up(position);
+                    listDemand.setSelection(position);
+                }
+            } else if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {// 左
+                if (isSelectTab) {
+                    if (isSelectLive) {// 此时选中的是直播列表
+                        // 直播列表已是最左边的 TAB  不做处理
+                    } else {// 此时选中的是点播课程列表  按左键回到直播列表
+                        textDemand.setBackground(null);
+                        textLive.setBackground(getDrawable(R.drawable.tab_white_background));
+                        isSelectLive = true;
+
+                        listDemand.setVisibility(View.GONE);
+                        listLive.setVisibility(View.VISIBLE);
+                    }
+                }
+
+            } else if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {// 右
+                if (isSelectTab) {
+                    if (isSelectLive) {// 此时选中的是直播列表  按右键回到点播列表
+                        textLive.setBackground(null);
+                        textDemand.setBackground(getDrawable(R.drawable.tab_white_background));
+                        isSelectLive = false;
+
+                        listLive.setVisibility(View.GONE);
+                        listDemand.setVisibility(View.VISIBLE);
+                    } else {// 此时选中的是点播课程列表
+                        // 点播列表已是最右边的 TAB  不做处理
+                    }
+                }
+
+            } else if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {// 下
+                if (isSelectTab) {
+                    isSelectTab = false;
+                    if (isSelectLive) {
+                        if (dList != null && dList.size() > 0) {// 有数据才能往下
+                            textLive.setBackground(getResources().getDrawable(R.drawable.tab_background));
+                            textDemand.setBackground(null);
+                            lAdapter.down(position);
+                        }
+                    } else {
+                        if (oList != null && oList.size() > 0) {// 有数据才能往下
+                            textDemand.setBackground(getResources().getDrawable(R.drawable.tab_background));
+                            textLive.setBackground(null);
+                            oAdapter.down(position);
+                        }
+                    }
+                    return true;
+                }
+                if (isSelectLive) {
+                    if (dList == null || dList.size() <= 0) return true;
+                    if (position + 1 >= dList.size()) return true;
+                    position++;
+                    lAdapter.down(position);
+//                    if (position >= 3) listLive.setSelection(position - 2);
+//                    else if (position == 0) listLive.setSelection(position);
+                    listLive.setSelection(position);
+                } else {
+                    if (oList == null || oList.size() == 0) return true;
+                    if (position + 1 >= oList.size()) return true;
+                    position++;
+                    oAdapter.down(position);
+                    listDemand.setSelection(position);
+                }
+            } else if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER || keyCode == KeyEvent.KEYCODE_ENTER) {// 确认
+                if (isSelectTab) return true;
+                if (isSelectLive) {// 焦点在直播列表中
+                    if (!dList.get(position).isSelect()) {
+                        dialogLoading = DialogUtils.dialogLoading(mContext);
+                        dialogLoading.show();
+                        isLoad = true;
+                        if (MyApp.getCourseId() == 0) {
+                            selectLiveList(lAdapter.getCourseId(position));
+                        } else {
+                            changeLiveList(lAdapter.getCourseId(position), MyApp.getCourseId());
+                        }
+                    }
+                } else {// 焦点在点播列表中
+                    Intent intent = new Intent(StandbyActivity.this, LoadActivity.class);
+                    startActivity(intent);// 进入加载
                 }
             } else if (keyCode == KeyEvent.KEYCODE_BACK) {
                 // 监控返回键
@@ -616,19 +785,7 @@ public class StandbyActivity extends Activity {
     protected void onDestroy() {
         super.onDestroy();
         if (mHandler != null) {
-            if (mLoopRequestRunnable != null) {
-                mHandler.removeCallbacks(mLoopRequestRunnable);
-                mLoopRequestRunnable = null;
-            }
-            if (mLoopLiveListRunnable != null) {
-                mHandler.removeCallbacks(mLoopLiveListRunnable);
-                mLoopLiveListRunnable = null;
-            }
             mHandler = null;
-        }
-        if (mReceiver != null) {
-            unregisterReceiver(mReceiver);
-            mReceiver = null;
         }
         if (dialogLoading != null) {
             dialogLoading.dismiss();

@@ -11,6 +11,7 @@ import android.widget.TextView;
 import com.squareup.picasso.Picasso;
 import com.tianbao.mi.R;
 import com.tianbao.mi.bean.UserDataBean;
+import com.tianbao.mi.constant.IntegerConstant;
 
 import java.util.Random;
 
@@ -28,6 +29,8 @@ public class MemberView extends LinearLayout {
     private ImageView imageSort;// 排名
     private TextView textSort;// 排名
     private View viewBack;// 背景
+
+    private TextView textHeartRateUnit;// 心率单位
 
     private Context mContext;
 
@@ -49,6 +52,8 @@ public class MemberView extends LinearLayout {
         imageSort = findViewById(R.id.image_sort);
         textSort = findViewById(R.id.text_sort);
         viewBack = findViewById(R.id.view_background);
+
+        textHeartRateUnit = findViewById(R.id.text_heart_rate_unit);
     }
 
     public void setData(UserDataBean data) {
@@ -69,7 +74,9 @@ public class MemberView extends LinearLayout {
         String speed = data.getRate();
         if (TextUtils.isEmpty(speed)) speed = "--";
 
-        String heart = data.getHeartRate();
+        int h = new Random().nextInt(220);
+//        String heart = data.getHeartRate();
+        String heart = String.valueOf(h);
         if (TextUtils.isEmpty(heart)) heart = "--";
 
         int c = new Random().nextInt(100);
@@ -80,6 +87,13 @@ public class MemberView extends LinearLayout {
         textSpeed.setText(speed);
 
         // 心率
+        if (TextUtils.isEmpty(heart) || heart.equals("--")) {// 没有获取到心率
+            textHeartRateUnit.setTextColor(getResources().getColor(R.color.gray));
+            textHeartRate.setTextColor(getResources().getColor(R.color.gray));
+        } else {
+            textHeartRateUnit.setTextColor(getResources().getColor(R.color.white));
+            textHeartRate.setTextColor(getResources().getColor(R.color.white));
+        }
         textHeartRate.setText(heart);
 
         // 卡路里
@@ -113,27 +127,48 @@ public class MemberView extends LinearLayout {
         if (!TextUtils.isEmpty(sort) && sort.equals("1")) {
             imageSort.setBackground(getResources().getDrawable(R.drawable.no1));
             imageSort.setVisibility(VISIBLE);
-            viewBack.setBackground(getResources().getDrawable(R.drawable.card_white_background));
+//            viewBack.setBackground(getResources().getDrawable(R.drawable.card_white_background));
         } else if (!TextUtils.isEmpty(sort) && sort.equals("2")) {
             imageSort.setBackground(getResources().getDrawable(R.drawable.no2));
             imageSort.setVisibility(VISIBLE);
-            viewBack.setBackground(getResources().getDrawable(R.drawable.card_white_background));
+//            viewBack.setBackground(getResources().getDrawable(R.drawable.card_white_background));
         } else if (!TextUtils.isEmpty(sort) && sort.equals("3")) {
             imageSort.setBackground(getResources().getDrawable(R.drawable.no3));
             imageSort.setVisibility(VISIBLE);
-            viewBack.setBackground(getResources().getDrawable(R.drawable.card_white_background));
+//            viewBack.setBackground(getResources().getDrawable(R.drawable.card_white_background));
         } else {
             imageSort.setVisibility(GONE);
-            viewBack.setBackground(getResources().getDrawable(R.drawable.card_background));
+//            viewBack.setBackground(getResources().getDrawable(R.drawable.card_background));
         }
         invalidate();
     }
 
+    // 根据心率在不同的范围内给 View 设置不同的背景色  不同的背景色代表着不同的提示信息
     public void updateView() {
         String hearRate = textHeartRate.getText().toString();
-    }
+        if (!TextUtils.isEmpty(hearRate) && !hearRate.equals("--")) {
+            int hear = Integer.valueOf(hearRate);
+            if (hear >= IntegerConstant.MIN_HEAR_RATE && hear < IntegerConstant.RELAX_HEAR_RATE) {
+                viewBack.setBackground(getResources().getDrawable(R.drawable.card_background));
 
-    public String getKey() {
-        return textKey.getText().toString();
+            } else if (hear >= IntegerConstant.RELAX_HEAR_RATE && hear < IntegerConstant.BURNING_HEAR_RATE) {// 放松热身
+                viewBack.setBackground(getResources().getDrawable(R.drawable.card_relax_background));
+
+            } else if (hear >= IntegerConstant.BURNING_HEAR_RATE && hear < IntegerConstant.CONSUME_HEAR_RATE) {// 燃烧脂肪
+                viewBack.setBackground(getResources().getDrawable(R.drawable.card_burning_background));
+
+            } else if (hear >= IntegerConstant.CONSUME_HEAR_RATE && hear < IntegerConstant.ACCUMULATION_HEAR_RATE) {// 糖原消耗
+                viewBack.setBackground(getResources().getDrawable(R.drawable.card_consume_background));
+
+            } else if (hear >= IntegerConstant.ACCUMULATION_HEAR_RATE && hear < IntegerConstant.MAX_HEAR_RATE) {// 乳酸堆积
+                viewBack.setBackground(getResources().getDrawable(R.drawable.card_accumulation_background));
+
+            } else if (hear > IntegerConstant.MAX_HEAR_RATE) {// 身体极限
+                viewBack.setBackground(getResources().getDrawable(R.drawable.card_limit_background));
+
+            } else {// < 60 那就不是很正常了
+                viewBack.setBackground(getResources().getDrawable(R.drawable.card_background));
+            }
+        }
     }
 }

@@ -41,4 +41,7 @@ public class Api {
 
     // 获取配置信息
     public final static String GET_APP = "/api/pi/getApp";
+
+    // 获取点播列表
+    public final static String GET_ON_DEMAND_LIST = "/api/pi/getOnDemandList";
 }
