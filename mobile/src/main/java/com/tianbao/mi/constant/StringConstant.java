@@ -6,13 +6,10 @@ package com.tianbao.mi.constant;
  */
 public class StringConstant {
 
-    // 数据传递
-    public final static String USER_DATA_LIST = "USER_DATA_LIST";
-
     // 保存在手机里面的文件名
     public final static String FILE_NAME = "FILE_NAME";
 
-    // 保存在手机数据类型  此数据标识此设备收集的数据类型  type = 1 动感单车  type = 2 跑步机 暂定
+    // 保存在手机数据类型  此数据标识此设备收集的数据类型  type = 1 动感单车  type = 2 跑步机 type == 3 团操  暂定
     public final static String DATA_TYPE_SP_KEY = "DATA_TYPE_SP_KEY";
 
     // 保存在手机数据类型  店面标识
@@ -78,41 +75,8 @@ public class StringConstant {
     // 直播中的课程
     public static String LIVE_STATU_ING = "直播中";
 
-    // 等待直播课程
-    public static String  LIVE_STATU_WAIT = "待直播";
-
     // 待直播课程结束
     public static String  LIVE_STATU_OVER = "直播结束";
-
-    // 数据传递 用户绑定的 KEY
-    public static String  USER_KEY = "USER_KEY";
-
-    // 播放背景音乐  卡路里增加
-    public final static String SOUND_CALORIE_ADD = "SOUND_CALORIE_ADD";
-
-    // 播放背景音乐  课程结束
-    public final static String SOUND_COURSE_END_0 = "SOUND_COURSE_END_0";
-
-    // 播放背景音乐  课程结束页 先
-    public final static String SOUND_COURSE_END_1 = "SOUND_COURSE_END_1";
-
-    // 播放背景音乐  课程结束页 后
-    public final static String SOUND_COURSE_END_2 = "SOUND_COURSE_END_2";
-
-    // 播放背景音乐  有新的瘾伙伴加入
-    public final static String SOUND_PARTNER_JOIN = "SOUND_PARTNER_JOIN";
-
-    // 播放背景音乐  课程开始
-    public final static String SOUND_START_COURSE = "SOUND_START_COURSE";
-
-    // 播放背景音乐  开始加载
-    public final static String SOUND_START_LOAD = "SOUND_START_LOAD";
-
-    // 播放背景音乐  警告音
-    public final static String SOUND_WARM = "SOUND_WARM";
-
-    // 播放背景音乐  第一名换人了
-    public final static String SOUND_YES = "SOUND_YES";
 
     // 数据传递  轮播图 上
     public final static String BANNER_LIST_UP = "BANNER_LIST_UP";
@@ -127,5 +91,4 @@ public class StringConstant {
 
     // 标识 直播
     public final static String LIVE_PLAY_TYPE = "LIVE_PLAY_TYPE";
-
 }
