@@ -4,54 +4,54 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <com.tianbao.mi.widget.bdplayer.BDCloudVideoView
-        android:id="@+id/bd_player"
+    <ImageView
+        android:id="@+id/image_background"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
 
-    <com.tianbao.mi.widget.AutoTypesettingLayout
+    <com.tianbao.mi.widget.CalisthenicsLayout
         android:id="@+id/view_left_front"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
         android:layout_marginLeft="20dp"
-        android:orientation="vertical">
+        android:orientation="horizontal">
 
-    </com.tianbao.mi.widget.AutoTypesettingLayout>
+    </com.tianbao.mi.widget.CalisthenicsLayout>
 
-    <com.tianbao.mi.widget.AutoTypesettingLayout
+    <com.tianbao.mi.widget.CalisthenicsLayout
         android:id="@+id/view_left_back"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
         android:layout_marginLeft="20dp"
         android:visibility="visible"
-        android:orientation="vertical">
+        android:orientation="horizontal">
 
-    </com.tianbao.mi.widget.AutoTypesettingLayout>
+    </com.tianbao.mi.widget.CalisthenicsLayout>
 
-    <com.tianbao.mi.widget.AutoTypesettingLayout
+    <com.tianbao.mi.widget.CalisthenicsLayout
         android:id="@+id/view_right_front"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:layout_marginTop="20dp"
         android:layout_marginRight="20dp"
-        android:orientation="vertical">
+        android:orientation="horizontal">
 
-    </com.tianbao.mi.widget.AutoTypesettingLayout>
+    </com.tianbao.mi.widget.CalisthenicsLayout>
 
-    <com.tianbao.mi.widget.AutoTypesettingLayout
+    <com.tianbao.mi.widget.CalisthenicsLayout
         android:id="@+id/view_right_back"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:layout_marginTop="20dp"
         android:layout_marginRight="20dp"
         android:visibility="visible"
-        android:orientation="vertical">
+        android:orientation="horizontal">
 
-    </com.tianbao.mi.widget.AutoTypesettingLayout>
+    </com.tianbao.mi.widget.CalisthenicsLayout>
 
     <RelativeLayout
         android:id="@+id/view_info"
@@ -62,21 +62,12 @@
         android:layout_alignParentBottom="true"
         android:background="@drawable/card_background">
 
-        <ImageView
-            android:id="@+id/living"
-            android:layout_width="88dp"
-            android:layout_height="26dp"
-            android:visibility="gone"
-            android:background="@drawable/zhibozhong"
-            android:layout_alignParentRight="true"/>
-
         <LinearLayout
             android:id="@+id/view_color"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_alignParentRight="true"
             android:layout_marginRight="10dp"
-            android:layout_below="@id/living"
             android:layout_marginTop="5dp"
             android:layout_marginBottom="10dp"
             android:orientation="horizontal">

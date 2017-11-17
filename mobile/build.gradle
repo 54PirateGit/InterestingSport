@@ -47,8 +47,9 @@ dependencies {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
     compile files('libs/retrofit-2.3.0.jar')
-    compile 'io.reactivex:rxandroid:1.2.0'
     compile files('libs/bdplayer.jar')
+    compile files('libs/core-3.2.1.jar')
+    compile 'io.reactivex:rxandroid:1.2.0'
     compile 'com.android.support:appcompat-v7:26.+'
     compile 'com.android.support.constraint:constraint-layout:1.0.0-alpha7'
     compile 'com.android.support:cardview-v7:26.+'
@@ -60,8 +61,7 @@ dependencies {
     compile 'org.projectlombok:lombok:1.16.6'
     compile 'io.reactivex:rxjava:1.1.5'
     compile 'com.android.support:design:26.+'
+    compile 'pl.droidsonroids.gif:android-gif-drawable:1.2.1'
     testCompile 'junit:junit:4.12'
     apt 'com.jakewharton:butterknife-compiler:8.4.0'
-    compile 'pl.droidsonroids.gif:android-gif-drawable:1.2.1'
-    compile files('libs/core-3.2.1.jar')
 }

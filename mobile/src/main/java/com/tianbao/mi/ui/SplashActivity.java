@@ -69,12 +69,13 @@ public class SplashActivity extends Activity {
     // 初始化
     private void init() {
         int type = (int) SPUtils.get(mContext, StringConstant.DATA_TYPE_SP_KEY, 0);// 如果已经登录过则有数据
+        type = IntegerConstant.CALISTHENICS_SYSTEM_TYPE;
         if (type == 0) {
             new Handler().postDelayed(() -> {
                 startActivity(new Intent(mContext, LoginActivity.class));
                 finish();
             }, 4000L);// 跳转到登录
-        } else {
+        } else if (type == IntegerConstant.DYNAMIC_SYSTEM_TYPE) {// 动感单车
             IntegerConstant.STORE_ID = (int) SPUtils.get(mContext, StringConstant.STORE_ID_SP_KEY, 0);// 如果已经登录过则有数据
 
             String name = (String) SPUtils.get(mContext, StringConstant.STORE_NAME_KEY, "-1");
@@ -84,6 +85,9 @@ public class SplashActivity extends Activity {
                 StringConstant.STORE_NAME = name;
             }
             requestApp(StringConstant.DEVICE_ID);
+        } else if (type == IntegerConstant.CALISTHENICS_SYSTEM_TYPE) {// 团操
+            Intent intent = new Intent(mContext, CalisthenicsActivity.class);
+            startActivity(intent);
         }
     }
 

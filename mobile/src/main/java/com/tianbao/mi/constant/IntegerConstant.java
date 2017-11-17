@@ -10,6 +10,15 @@ public class IntegerConstant {
     // 网络请求成功
     public final static int RESULT_OK = 200;
 
+    // Dynamic bike 系统类型
+    public final static int DYNAMIC_SYSTEM_TYPE = 1;
+
+    // Treadmill 系统类型
+    public final static int TREADMILL_SYSTEM_TYPE = 2;
+
+    // calisthenics 系统类型
+    public final static int CALISTHENICS_SYSTEM_TYPE = 3;
+
     // storeId
     public static int STORE_ID = -1;
 

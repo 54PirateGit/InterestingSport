@@ -50,7 +50,7 @@ import retrofit.Response;
 import retrofit.Retrofit;
 
 /**
- * 加载成员信息和展示数据
+ * 动感单车数据展示界面
  * 10/23
  */
 public class MainActivity extends AppCompatActivity {

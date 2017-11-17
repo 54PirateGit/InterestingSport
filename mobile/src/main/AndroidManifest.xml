@@ -50,9 +50,10 @@
         <!-- 主界面 -->
         <activity
             android:name=".ui.MainActivity"
-            android:screenOrientation="landscape"
             android:launchMode="singleTask"
+            android:screenOrientation="landscape"
             android:theme="@style/AnimStyle"/> <!-- portrait:竖屏, landscape:横屏 -->
+
 
         <!-- 加载 -->
         <activity
@@ -70,9 +71,14 @@
             android:name=".ui.StandbyActivity"
             android:theme="@style/AnimStyle"/>
 
-        <!--课程结束跳转至此-->
+        <!-- 课程结束跳转至此 -->
         <activity
             android:name=".ui.CourseEndActivity"
+            android:theme="@style/AnimStyle"/>
+
+        <!--团操数据展示界面-->
+        <activity
+            android:name=".ui.CalisthenicsActivity"
             android:theme="@style/AnimStyle"/>
 
         <!-- 消息接收监听器 -->
