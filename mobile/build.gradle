@@ -63,4 +63,5 @@ dependencies {
     testCompile 'junit:junit:4.12'
     apt 'com.jakewharton:butterknife-compiler:8.4.0'
     compile 'pl.droidsonroids.gif:android-gif-drawable:1.2.1'
+    compile files('libs/core-3.2.1.jar')
 }
