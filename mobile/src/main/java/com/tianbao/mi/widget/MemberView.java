@@ -148,25 +148,22 @@ public class MemberView extends LinearLayout {
         String hearRate = textHeartRate.getText().toString();
         if (!TextUtils.isEmpty(hearRate) && !hearRate.equals("--")) {
             int hear = Integer.valueOf(hearRate);
-            if (hear >= IntegerConstant.MIN_HEAR_RATE && hear < IntegerConstant.RELAX_HEAR_RATE) {
+            if (hear < IntegerConstant.RELAX_HEAR_RATE) {// 放松热身
                 viewBack.setBackground(getResources().getDrawable(R.drawable.card_background));
 
-            } else if (hear >= IntegerConstant.RELAX_HEAR_RATE && hear < IntegerConstant.BURNING_HEAR_RATE) {// 放松热身
+            } else if (hear >= IntegerConstant.RELAX_HEAR_RATE && hear < IntegerConstant.BURNING_HEAR_RATE) {// 燃烧脂肪
                 viewBack.setBackground(getResources().getDrawable(R.drawable.card_relax_background));
 
-            } else if (hear >= IntegerConstant.BURNING_HEAR_RATE && hear < IntegerConstant.CONSUME_HEAR_RATE) {// 燃烧脂肪
+            } else if (hear >= IntegerConstant.BURNING_HEAR_RATE && hear < IntegerConstant.CONSUME_HEAR_RATE) {// 糖原消耗
                 viewBack.setBackground(getResources().getDrawable(R.drawable.card_burning_background));
 
-            } else if (hear >= IntegerConstant.CONSUME_HEAR_RATE && hear < IntegerConstant.ACCUMULATION_HEAR_RATE) {// 糖原消耗
+            } else if (hear >= IntegerConstant.CONSUME_HEAR_RATE && hear < IntegerConstant.ACCUMULATION_HEAR_RATE) {// 乳酸堆积
                 viewBack.setBackground(getResources().getDrawable(R.drawable.card_consume_background));
 
-            } else if (hear >= IntegerConstant.ACCUMULATION_HEAR_RATE && hear < IntegerConstant.MAX_HEAR_RATE) {// 乳酸堆积
+            } else if (hear >= IntegerConstant.ACCUMULATION_HEAR_RATE) {// 身体极限
                 viewBack.setBackground(getResources().getDrawable(R.drawable.card_accumulation_background));
 
-            } else if (hear > IntegerConstant.MAX_HEAR_RATE) {// 身体极限
-                viewBack.setBackground(getResources().getDrawable(R.drawable.card_limit_background));
-
-            } else {// < 60 那就不是很正常了
+            } else {// 意外情况  一般只在刚开始时出现 在有运动数据之后不会出现
                 viewBack.setBackground(getResources().getDrawable(R.drawable.card_background));
             }
         }

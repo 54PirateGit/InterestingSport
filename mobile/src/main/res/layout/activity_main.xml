@@ -71,132 +71,153 @@
             android:layout_alignParentRight="true"/>
 
         <LinearLayout
+            android:id="@+id/view_color"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_alignParentRight="true"
             android:layout_marginRight="10dp"
             android:layout_below="@id/living"
-            android:layout_marginTop="3dp"
-            android:layout_marginBottom="3dp"
-            android:orientation="vertical">
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="10dp"
+            android:orientation="horizontal">
 
-            <!--身体极限-->
             <LinearLayout
                 android:layout_width="wrap_content"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:layout_gravity="center"
-                android:orientation="horizontal">
+                android:layout_height="match_parent"
+                android:orientation="vertical">
 
-                <View
-                    android:layout_width="10dp"
-                    android:layout_height="10dp"
-                    android:background="@color/limitColor"/>
-
-                <TextView
+                <!--身体极限-->
+                <LinearLayout
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="身体极限"
-                    android:textColor="@color/white"
-                    android:textSize="10sp"
-                    android:layout_marginLeft="5dp"/>
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:layout_gravity="center"
+                    android:orientation="horizontal">
+
+                    <View
+                        android:layout_width="12dp"
+                        android:layout_height="12dp"
+                        android:background="@color/limitColor"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="身体极限"
+                        android:textColor="@color/white"
+                        android:textSize="12sp"
+                        android:layout_marginLeft="5dp"/>
+
+                </LinearLayout>
+
+                <!--乳酸堆积-->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:layout_gravity="center"
+                    android:orientation="horizontal">
+
+                    <View
+                        android:layout_width="12dp"
+                        android:layout_height="12dp"
+                        android:background="@color/accumulationColor"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="乳酸堆积"
+                        android:textColor="@color/white"
+                        android:textSize="12sp"
+                        android:layout_marginLeft="5dp"/>
+
+                </LinearLayout>
+
+                <!--糖原消耗-->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:layout_gravity="center"
+                    android:orientation="horizontal">
+
+                    <View
+                        android:layout_width="12dp"
+                        android:layout_height="12dp"
+                        android:background="@color/consumeColor"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="糖原消耗"
+                        android:textColor="@color/white"
+                        android:textSize="12sp"
+                        android:layout_marginLeft="5dp"/>
+
+                </LinearLayout>
 
             </LinearLayout>
 
-            <!--乳酸堆积-->
             <LinearLayout
                 android:layout_width="wrap_content"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:layout_gravity="center"
-                android:orientation="horizontal">
+                android:layout_height="match_parent"
+                android:layout_marginLeft="15dp"
+                android:orientation="vertical">
+
+                <!--燃烧脂肪-->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:layout_gravity="center"
+                    android:orientation="horizontal">
+
+                    <View
+                        android:layout_width="12dp"
+                        android:layout_height="12dp"
+                        android:background="@color/burningColor"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="燃烧脂肪"
+                        android:textColor="@color/white"
+                        android:textSize="12sp"
+                        android:layout_marginLeft="5dp"/>
+
+                </LinearLayout>
+
+                <!--放松热身-->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:layout_gravity="center"
+                    android:orientation="horizontal">
+
+                    <View
+                        android:layout_width="12dp"
+                        android:layout_height="12dp"
+                        android:background="@color/relaxColor"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="放松热身"
+                        android:textColor="@color/white"
+                        android:textSize="12sp"
+                        android:layout_marginLeft="5dp"/>
+
+                </LinearLayout>
 
                 <View
-                    android:layout_width="10dp"
-                    android:layout_height="10dp"
-                    android:background="@color/accumulationColor"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="乳酸堆积"
-                    android:textColor="@color/white"
-                    android:textSize="10sp"
-                    android:layout_marginLeft="5dp"/>
-
-            </LinearLayout>
-
-            <!--糖原消耗-->
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:layout_gravity="center"
-                android:orientation="horizontal">
-
-                <View
-                    android:layout_width="10dp"
-                    android:layout_height="10dp"
-                    android:background="@color/consumeColor"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="糖原消耗"
-                    android:textColor="@color/white"
-                    android:textSize="10sp"
-                    android:layout_marginLeft="5dp"/>
-
-            </LinearLayout>
-
-            <!--燃烧脂肪-->
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:layout_gravity="center"
-                android:orientation="horizontal">
-
-                <View
-                    android:layout_width="10dp"
-                    android:layout_height="10dp"
-                    android:background="@color/burningColor"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="燃烧脂肪"
-                    android:textColor="@color/white"
-                    android:textSize="10sp"
-                    android:layout_marginLeft="5dp"/>
-
-            </LinearLayout>
-
-            <!--放松热身-->
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:layout_gravity="center"
-                android:orientation="horizontal">
-
-                <View
-                    android:layout_width="10dp"
-                    android:layout_height="10dp"
-                    android:background="@color/relaxColor"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="放松热身"
-                    android:textColor="@color/white"
-                    android:textSize="10sp"
-                    android:layout_marginLeft="5dp"/>
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"/>
 
             </LinearLayout>
 
@@ -208,6 +229,25 @@
             android:layout_height="match_parent"
             android:divider="#00000000"
             android:scrollbars="none"/>
+
+        <LinearLayout
+            android:id="@+id/view_qr"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_centerVertical="true"
+            android:layout_toLeftOf="@id/view_color"
+            android:visibility="gone"
+            android:layout_marginRight="20dp"
+            android:orientation="vertical">
+
+            <ImageView
+                android:id="@+id/image_qr"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_gravity="center"
+                android:background="@color/white"/>
+
+        </LinearLayout>
 
     </RelativeLayout>
 

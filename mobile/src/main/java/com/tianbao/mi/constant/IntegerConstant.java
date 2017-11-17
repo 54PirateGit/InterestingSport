@@ -53,21 +53,21 @@ public class IntegerConstant {
     public final static int IDEN_USER_BINDING_DATA = 1;
 
     // 正常心率范围内的最小心率值
-    public final static int MIN_HEAR_RATE = 60;
+//    public final static int MIN_HEAR_RATE = 60;
 
     // 放松热身
-    public final static int RELAX_HEAR_RATE = 90;
+    public final static int RELAX_HEAR_RATE = 100;
 
     // 燃烧脂肪
-    public final static int BURNING_HEAR_RATE = 120;
+    public final static int BURNING_HEAR_RATE = 144;
 
     // 糖原消耗
-    public final static int CONSUME_HEAR_RATE = 144;
+    public final static int CONSUME_HEAR_RATE = 170;
 
     // 乳酸堆积
-    public final static int ACCUMULATION_HEAR_RATE = 170;
+    public final static int ACCUMULATION_HEAR_RATE = 195;
 
     // 高强度运动时最大心率值
-    public final static int MAX_HEAR_RATE = 195;
+//    public final static int MAX_HEAR_RATE = 195;
 
 }

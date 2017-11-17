@@ -42,6 +42,7 @@ import retrofit.Retrofit;
  */
 public class SplashActivity extends Activity {
 
+    private Handler mHandler = new Handler();
     private Context mContext;
     private ImageView advertisement;
 
@@ -122,6 +123,18 @@ public class SplashActivity extends Activity {
             }
         });
     }
+
+    // 没有获取到数据时重复发送请求获取数据  5 次没有获取到数据时提示检查网络环境
+    private int count = 0;
+    private Runnable mLoopRequestRunnable = () -> {
+        if (count < 5) {
+            requestApp(StringConstant.DEVICE_ID);
+            count++;
+            if (count == 5) {
+                Toast.makeText(mContext, "无法连接网络，请检查网络连接", Toast.LENGTH_LONG).show();
+            }
+        }
+    };
 
     // 获取配置信息
     private void requestApp(String deviceId) {
@@ -218,21 +231,33 @@ public class SplashActivity extends Activity {
                         new Handler().postDelayed(() -> {
                             startActivity(intent);
                             finish();
-                        }, 6000L);
+                        }, 5000L);
                     } else {
-                        startActivity(new Intent(mContext, StandbyActivity.class));// 没有课程信息
-                        finish();
+                        if (count == 5) {
+                            startActivity(new Intent(mContext, StandbyActivity.class));// 没有课程信息
+                            finish();
+                        } else {
+                            mHandler.postDelayed(mLoopRequestRunnable, 2000L);
+                        }
                     }
                 } else {
-                    startActivity(new Intent(mContext, StandbyActivity.class));// 没有课程信息
-                    finish();
+                    if (count == 5) {
+                        startActivity(new Intent(mContext, StandbyActivity.class));// 没有课程信息
+                        finish();
+                    } else {
+                        mHandler.postDelayed(mLoopRequestRunnable, 2000L);
+                    }
                 }
             }
 
             @Override
             public void onFailure(Throwable t) {
-                startActivity(new Intent(mContext, StandbyActivity.class));// 没有课程信息
-                finish();
+                if (count == 5) {
+                    startActivity(new Intent(mContext, StandbyActivity.class));// 没有课程信息
+                    finish();
+                } else {
+                    mHandler.postDelayed(mLoopRequestRunnable, 2000L);
+                }
             }
         });
     }
@@ -305,5 +330,17 @@ public class SplashActivity extends Activity {
             return true;
         }
         return super.onKeyDown(keyCode, event);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (mHandler != null) {
+            if (mLoopRequestRunnable != null) {
+                mHandler.removeCallbacks(mLoopRequestRunnable);
+                mLoopRequestRunnable = null;
+            }
+            mHandler = null;
+        }
     }
 }

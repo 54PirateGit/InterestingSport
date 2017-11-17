@@ -23,11 +23,6 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.EncodeHintType;
-import com.google.zxing.WriterException;
-import com.google.zxing.common.BitMatrix;
-import com.google.zxing.qrcode.QRCodeWriter;
 import com.squareup.picasso.Picasso;
 import com.tianbao.mi.R;
 import com.tianbao.mi.adapter.BannerAdapter;
@@ -48,6 +43,7 @@ import com.tianbao.mi.net.ApiService;
 import com.tianbao.mi.utils.DialogUtils;
 import com.tianbao.mi.utils.L;
 import com.tianbao.mi.utils.ListViewUtils;
+import com.tianbao.mi.utils.QrUtil;
 import com.tianbao.mi.utils.SPUtils;
 import com.tianbao.mi.utils.SoundPlayUtils;
 import com.tianbao.mi.widget.AutoScrollListView;
@@ -98,6 +94,10 @@ public class StandbyActivity extends Activity {
     TextView textLive;// tab 直播
     @BindView(R.id.text_demand)
     TextView textDemand;// tab 点播
+    @BindView(R.id.image_qr)
+    ImageView imageQr;// 二维码
+    @BindView(R.id.view_qr)
+    View viewQr;// 展示二维码的地方
 
     private Dialog dialogLoading;
     private boolean isLoad;
@@ -227,23 +227,35 @@ public class StandbyActivity extends Activity {
             }
         }
 
-        if (downList == null || downList.size() == 0) {
-            advertisement.setAlpha(0.5f);
-        } else {
-            advertisement.setAlpha(1.0f);
-
-            BannerAdapter bannerAdapter1 = new BannerAdapter(mContext, 200);
-            bannerAdapter1.setData(downList);
-            advertisement.setDotGravity(Banner.CENTER).
-                    setDot(R.drawable.no_selected_dot, R.drawable.selected_dot).
-                    setAdapter(bannerAdapter1);
-
-            if (downList.size() > 1) {
-                advertisement.startAutoPlay();//  自动播放轮播图
+        // 生成二维码
+        viewQr.setAlpha(0.8f);
+        if (downList != null && downList.size() > 0) {
+            Bitmap qrBitmap = QrUtil.generateBitmap(downList.get(0), 270, 270);
+            if (qrBitmap != null) {
+                imageQr.setVisibility(View.VISIBLE);
+                imageQr.setImageBitmap(qrBitmap);
             } else {
-                advertisement.stopAutoPlay();
+                imageQr.setVisibility(View.GONE);
             }
         }
+
+//        if (downList == null || downList.size() == 0) {
+//            advertisement.setAlpha(0.5f);
+//        } else {
+//            advertisement.setAlpha(1.0f);
+//
+//            BannerAdapter bannerAdapter1 = new BannerAdapter(mContext, 200);
+//            bannerAdapter1.setData(downList);
+//            advertisement.setDotGravity(Banner.CENTER).
+//                    setDot(R.drawable.no_selected_dot, R.drawable.selected_dot).
+//                    setAdapter(bannerAdapter1);
+//
+//            if (downList.size() > 1) {
+//                advertisement.startAutoPlay();//  自动播放轮播图
+//            } else {
+//                advertisement.stopAutoPlay();
+//            }
+//        }
     }
 
     // 轮询获取课程信息
@@ -819,29 +831,6 @@ public class StandbyActivity extends Activity {
         LayoutAnimationController controller = new LayoutAnimationController(set, 0.5f);// 0.5f 动画播放的延迟时间
         controller.setOrder(LayoutAnimationController.ORDER_NORMAL);
         return controller;
-    }
-
-    private Bitmap generateBitmap(String content, int width, int height) {
-        QRCodeWriter qrCodeWriter = new QRCodeWriter();
-        Map<EncodeHintType, String> hints = new HashMap<>();
-        hints.put(EncodeHintType.CHARACTER_SET, "utf-8");
-        try {
-            BitMatrix encode = qrCodeWriter.encode(content, BarcodeFormat.QR_CODE, width, height, hints);
-            int[] pixels = new int[width * height];
-            for (int i = 0; i < height; i++) {
-                for (int j = 0; j < width; j++) {
-                    if (encode.get(j, i)) {
-                        pixels[i * width + j] = 0x00000000;
-                    } else {
-                        pixels[i * width + j] = 0xffffffff;
-                    }
-                }
-            }
-            return Bitmap.createBitmap(pixels, 0, width, width, height, Bitmap.Config.RGB_565);
-        } catch (WriterException e) {
-            e.printStackTrace();
-        }
-        return null;
     }
 
     @Override

@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
@@ -27,6 +28,7 @@ import com.tianbao.mi.constant.StringConstant;
 import com.tianbao.mi.net.Api;
 import com.tianbao.mi.net.ApiService;
 import com.tianbao.mi.utils.L;
+import com.tianbao.mi.utils.QrUtil;
 import com.tianbao.mi.utils.SPUtils;
 import com.tianbao.mi.utils.SoundPlayUtils;
 import com.tianbao.mi.widget.AutoScrollListView;
@@ -71,6 +73,11 @@ public class MainActivity extends AppCompatActivity {
     @BindView(R.id.auto_scroll_list)
     AutoScrollListView autoScrollListView;
 
+    @BindView(R.id.image_qr)
+    ImageView imageQr;// 二维码
+    @BindView(R.id.view_qr)
+    View viewQr;
+
     private List<InformationBean> iList = new ArrayList<>();
 
     private Context mContext;
@@ -101,8 +108,8 @@ public class MainActivity extends AppCompatActivity {
         mVV.setVideoScalingMode(BDCloudVideoView.VIDEO_SCALING_MODE_SCALE_TO_FIT);
         mVV.setOnCompletionListener(iMediaPlayer -> {
             mHandler.postDelayed(() -> {
-//                startActivity(new Intent(mContext, CourseEndActivity.class));// 跳转到课程结束界面
-//                finish();
+                startActivity(new Intent(mContext, CourseEndActivity.class));// 跳转到课程结束界面
+                finish();
             }, 5 * 1000L);
         });
         mVV.start();
@@ -167,6 +174,13 @@ public class MainActivity extends AppCompatActivity {
     // 初始化视图
     private void initView() {
         viewInfo.setAlpha(0.5f);
+        Bitmap qrBitmap = QrUtil.generateBitmap("hello world", 240, 240);
+        if (qrBitmap != null) {
+            viewQr.setVisibility(View.VISIBLE);
+            imageQr.setImageBitmap(qrBitmap);
+        } else {
+            viewQr.setVisibility(View.GONE);
+        }
 
         mHandler.postDelayed(mLoopUserDataRunnable, IntegerConstant.REFRESH_DATA_FREQUENCY);// 隔一定时间去获取用户数据
         mHandler.post(mLoopUserRelaRunnable);// 隔一定时间去获取用户绑定关系

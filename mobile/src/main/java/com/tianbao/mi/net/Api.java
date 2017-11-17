@@ -7,7 +7,10 @@ package com.tianbao.mi.net;
 public class Api {
 
     // 树莓派地址
-    public final static String BASE_URL_PI = "http://192.168.31.58:8088";
+//    public final static String BASE_URL_PI = "http://192.168.31.58:8088";
+
+    // 树莓派地址
+    public final static String BASE_URL_PI = "http://192.168.1.109:8088";
 
     // 云服务器地址
     public final static String BASE_URL = "http://yin.nat200.top";
