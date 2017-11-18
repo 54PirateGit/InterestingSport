@@ -47,4 +47,7 @@ public class Api {
 
     // 获取点播列表
     public final static String GET_ON_DEMAND_LIST = "/api/pi/getOnDemandList";
+
+    // 添加心率
+    public final static String ADD_HEART = "/api/user/addHeart";
 }

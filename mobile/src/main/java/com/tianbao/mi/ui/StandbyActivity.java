@@ -21,9 +21,7 @@ import android.view.animation.TranslateAnimation;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.squareup.picasso.Picasso;
 import com.tianbao.mi.R;
 import com.tianbao.mi.adapter.BannerAdapter;
 import com.tianbao.mi.adapter.LiveListAdapter;
@@ -40,12 +38,14 @@ import com.tianbao.mi.constant.IntegerConstant;
 import com.tianbao.mi.constant.StringConstant;
 import com.tianbao.mi.net.Api;
 import com.tianbao.mi.net.ApiService;
+import com.tianbao.mi.utils.BitmapUtils;
 import com.tianbao.mi.utils.DialogUtils;
 import com.tianbao.mi.utils.L;
 import com.tianbao.mi.utils.ListViewUtils;
 import com.tianbao.mi.utils.QrUtil;
 import com.tianbao.mi.utils.SPUtils;
 import com.tianbao.mi.utils.SoundPlayUtils;
+import com.tianbao.mi.utils.T;
 import com.tianbao.mi.widget.AutoScrollListView;
 import com.tianbao.mi.widget.PartnerLayout;
 import com.tianbao.mi.widget.PartnerView;
@@ -103,6 +103,7 @@ public class StandbyActivity extends Activity {
     private boolean isLoad;
     private boolean isSelectTab = false;// 焦点是否在 TAB 上  TAB 为选择直播或点播内容  默认焦点不是在 TAB 上  而是在直播列表中的第一条数据上
     private boolean isSelectLive = true;// 焦点是否直播列表中  数据刚加载默认是显示直播列表
+    private boolean isCancelRequest;
 
     private Context mContext;
     private LiveListAdapter lAdapter;// 直播课程信息展示
@@ -110,7 +111,6 @@ public class StandbyActivity extends Activity {
 
     private Handler mHandler = new Handler();
     private boolean isLoop = true;// 没有课程信息时每隔一段时间去获取
-    private final static long LOOP_TIME = 3 * 60 * 1000L;// 隔一定时间去获取课程信息
 
     private List<OnDemandCourseBean.DataBean> oList;// 保存点播课程信息
     private List<LiveCourseBean.DataBean> dList;// 保存直播课程信息
@@ -118,13 +118,13 @@ public class StandbyActivity extends Activity {
     private List<PartnerTipBean> pList;
     private List<String> ids = new ArrayList<>();
 
-    private ArrayList<String> upList = new ArrayList<>();
-    private ArrayList<String> downList = new ArrayList<>();
+    private List<String> upList = new ArrayList<>();
+    private List<String> downList = new ArrayList<>();
 
     private void setKey() {
         int storeId = (int) SPUtils.get(mContext, StringConstant.STORE_ID_SP_KEY, 1);
         String kString;
-        for (int i = 1; i < 29; i++) {
+        for (int i = 0; i < 30; i++) {
             kString = storeId + "_" + i;
             key.add(kString);
         }
@@ -153,11 +153,6 @@ public class StandbyActivity extends Activity {
 
         setKey();// 全部 key
         initView();
-
-//        isLoop = false;
-//        Intent intent = new Intent(StandbyActivity.this, LoadActivity.class);
-//        startActivity(intent);// 进入加载
-//        finish();
     }
 
     @Override
@@ -167,7 +162,7 @@ public class StandbyActivity extends Activity {
         registerBroad();// 注册广播
         mHandler.post(mLoopLiveListRunnable);
         if (isLoop) {
-            mHandler.postDelayed(mLoopRequestRunnable, LOOP_TIME);
+            mHandler.postDelayed(mLoopRequestRunnable, IntegerConstant.GET_COURSE_INFO_LOOP_TIME);
         }
     }
 
@@ -181,6 +176,12 @@ public class StandbyActivity extends Activity {
         if (mLoopRequestRunnable != null) {
             mHandler.removeCallbacks(mLoopRequestRunnable);
         }
+        if (mRestartRequestUserInfoRunnable != null) {
+            mHandler.removeCallbacks(mRestartRequestUserInfoRunnable);
+        }
+        if (reStartRequest != null) {
+            mHandler.removeCallbacks(reStartRequest);
+        }
         if (mReceiver != null) {
             unregisterReceiver(mReceiver);
         }
@@ -189,7 +190,11 @@ public class StandbyActivity extends Activity {
     // 初始化视图
     private void initView() {
         setFront();
-        Picasso.with(mContext).load(R.drawable.kec).into(imageBackground);
+
+        // 压缩图片
+        Bitmap bitmap = BitmapUtils.readBitMap(mContext, R.drawable.kec);
+        imageBackground.setImageBitmap(bitmap);
+
         textName.setText(StringConstant.STORE_NAME);
         textYear.setText(StringConstant.TIME_YEAR);
         initBanner();
@@ -197,24 +202,19 @@ public class StandbyActivity extends Activity {
         requestUserInfo(key);
         scrollList.setAlpha(0.5f);
 
-        mHandler.postDelayed(() -> requestOnDemandList(), 3000L);
+        mHandler.postDelayed(() -> requestOnDemandList(), IntegerConstant.RESTART_REQUEST_TIME);
     }
 
     // 初始化轮播图
     private void initBanner() {
-        Intent intent = getIntent();
-        if (intent != null) {
-            upList = intent.getStringArrayListExtra(StringConstant.BANNER_LIST_UP);
-            downList = intent.getStringArrayListExtra(StringConstant.BANNER_LIST_DOWN);
-        }
-
+        upList = MyApp.getUpUrl();
         if (upList == null || upList.size() == 0) {
             banner.setAlpha(0.5f);
         } else {
             banner.setAlpha(1.0f);
 
             // 轮播图
-            BannerAdapter bannerAdapter = new BannerAdapter(mContext, 200);
+            BannerAdapter bannerAdapter = new BannerAdapter(mContext, IntegerConstant.RESULT_OK);
             bannerAdapter.setData(upList);
             banner.setDotGravity(Banner.CENTER).
                     setDot(R.drawable.no_selected_dot, R.drawable.selected_dot).
@@ -228,6 +228,7 @@ public class StandbyActivity extends Activity {
         }
 
         // 生成二维码
+        downList = MyApp.getDownUrl();
         viewQr.setAlpha(0.8f);
         if (downList != null && downList.size() > 0) {
             Bitmap qrBitmap = QrUtil.generateBitmap(downList.get(0), 270, 270);
@@ -238,24 +239,6 @@ public class StandbyActivity extends Activity {
                 imageQr.setVisibility(View.GONE);
             }
         }
-
-//        if (downList == null || downList.size() == 0) {
-//            advertisement.setAlpha(0.5f);
-//        } else {
-//            advertisement.setAlpha(1.0f);
-//
-//            BannerAdapter bannerAdapter1 = new BannerAdapter(mContext, 200);
-//            bannerAdapter1.setData(downList);
-//            advertisement.setDotGravity(Banner.CENTER).
-//                    setDot(R.drawable.no_selected_dot, R.drawable.selected_dot).
-//                    setAdapter(bannerAdapter1);
-//
-//            if (downList.size() > 1) {
-//                advertisement.startAutoPlay();//  自动播放轮播图
-//            } else {
-//                advertisement.stopAutoPlay();
-//            }
-//        }
     }
 
     // 轮询获取课程信息
@@ -264,7 +247,7 @@ public class StandbyActivity extends Activity {
         public void run() {
             if (isLoop) {
                 request();
-                mHandler.postDelayed(this, LOOP_TIME);
+                mHandler.postDelayed(this, IntegerConstant.GET_COURSE_INFO_LOOP_TIME);
             }
         }
     };
@@ -274,14 +257,14 @@ public class StandbyActivity extends Activity {
         @Override
         public void run() {
             requestLiveList();
-            mHandler.postDelayed(this, 5 * 60 * 1000L);
+            mHandler.postDelayed(this, IntegerConstant.GET_LIVE_COURSE_LIST);
         }
     };
 
     // 没有获取到数据或获取数据失败时重复请求
     private int count1 = 0;
     private Runnable reStartRequest = () -> {
-        if (count1 < 5) {
+        if (count1 < IntegerConstant.RESTART_REQUEST_COUNT) {
             requestLiveList();
             count1++;
         }
@@ -290,7 +273,7 @@ public class StandbyActivity extends Activity {
     // 没有获取到数据或获取数据失败时重复请求
     private int count2 = 0;
     private Runnable reStartRequestDemand = () -> {
-        if (count2 < 5) {
+        if (count2 < IntegerConstant.RESTART_REQUEST_COUNT) {
             requestOnDemandList();
             count2++;
         }
@@ -307,6 +290,7 @@ public class StandbyActivity extends Activity {
         model.enqueue(new Callback<OnDemandCourseBean>() {
             @Override
             public void onResponse(Response<OnDemandCourseBean> response, Retrofit retrofit) {
+                if (isCancelRequest) return;
                 OnDemandCourseBean bean = response.body();
                 if (bean != null) {
                     int code = bean.getCode();
@@ -322,7 +306,7 @@ public class StandbyActivity extends Activity {
                         oAdapter.notifyDataSetChanged();
                     } else {
                         L.w("requestOnDemandList", "data is error");
-                        mHandler.postDelayed(reStartRequestDemand, 3000L);
+                        mHandler.postDelayed(reStartRequestDemand, IntegerConstant.RESTART_REQUEST_TIME);
                     }
                     if (isSelectLive) {
                         listDemand.setVisibility(View.GONE);
@@ -331,7 +315,7 @@ public class StandbyActivity extends Activity {
                     }
                 } else {
                     L.w("requestOnDemandList", "data is null");
-                    mHandler.postDelayed(reStartRequestDemand, 3000L);
+                    mHandler.postDelayed(reStartRequestDemand, IntegerConstant.RESTART_REQUEST_TIME);
                 }
             }
 
@@ -357,15 +341,13 @@ public class StandbyActivity extends Activity {
         model.enqueue(new Callback<LiveCourseBean>() {
             @Override
             public void onResponse(Response<LiveCourseBean> response, Retrofit retrofit) {
+                if (isCancelRequest) return;
                 LiveCourseBean courseBean = response.body();
                 if (courseBean == null) return;
                 L.v("courseBean", courseBean.toString());
 
                 int code = courseBean.getCode();
                 if (code == IntegerConstant.RESULT_OK) {
-                    if (reStartRequest != null) {
-                        mHandler.removeCallbacks(reStartRequest);
-                    }
                     dList = courseBean.getData();
                     if (dList == null || dList.size() <= 0) {
                         isSelectTab = true;
@@ -386,7 +368,7 @@ public class StandbyActivity extends Activity {
 
                         mHandler.postDelayed(() -> {
                             if (MyApp.getCourseId() != 0) request();
-                        }, 15000L);
+                        }, IntegerConstant.INTO_LIVE_COURSE_TIME);
                     } else {// 界面有更新
                         lAdapter.notifyDataSetChanged();
                     }
@@ -397,7 +379,7 @@ public class StandbyActivity extends Activity {
                         listLive.setVisibility(View.GONE);
                     }
                 } else {
-                    mHandler.postDelayed(reStartRequest, 2000L);
+                    mHandler.postDelayed(reStartRequest, IntegerConstant.RESTART_REQUEST_TIME);
 
                     L.d("requestLiveList", "requestLiveList 获取课程信息失败，请稍后重试");
                 }
@@ -407,7 +389,7 @@ public class StandbyActivity extends Activity {
             public void onFailure(Throwable t) {
                 L.d("requestLiveList", "requestLiveList 连接服务器失败");
 
-                mHandler.postDelayed(reStartRequest, 2000L);
+                mHandler.postDelayed(reStartRequest, IntegerConstant.RESTART_REQUEST_TIME);
             }
         });
     }
@@ -428,6 +410,7 @@ public class StandbyActivity extends Activity {
         model.enqueue(new Callback<CurrencyBean>() {
             @Override
             public void onResponse(Response<CurrencyBean> response, Retrofit retrofit) {
+                if (isCancelRequest) return;
                 if (dialogLoading != null) dialogLoading.dismiss();
                 isLoad = false;
                 CurrencyBean bean = response.body();
@@ -443,7 +426,7 @@ public class StandbyActivity extends Activity {
                             }
                         }
                         lAdapter.setList(dList);
-                        mHandler.postDelayed(() -> request(), 15000L);
+                        mHandler.postDelayed(() -> request(), IntegerConstant.INTO_LIVE_COURSE_TIME);
                     }
                 } else {
                     L.d("selectLiveList", "selectLiveList 获取课程信息失败，请重试");
@@ -476,6 +459,7 @@ public class StandbyActivity extends Activity {
         model.enqueue(new Callback<CurrencyBean>() {
             @Override
             public void onResponse(Response<CurrencyBean> response, Retrofit retrofit) {
+                if (isCancelRequest) return;
                 if (dialogLoading != null) dialogLoading.dismiss();
                 isLoad = false;
                 CurrencyBean bean = response.body();
@@ -494,7 +478,7 @@ public class StandbyActivity extends Activity {
                             }
                         }
                         lAdapter.setList(dList);
-                        mHandler.postDelayed(() -> request(), 15000L);
+                        mHandler.postDelayed(() -> request(), IntegerConstant.INTO_LIVE_COURSE_TIME);
                     }
                 } else {
                     L.d("changeLiveList", "changeLiveList 获取课程信息失败，请重试");
@@ -526,10 +510,11 @@ public class StandbyActivity extends Activity {
         model.enqueue(new Callback<CourseInfoBean>() {
             @Override
             public void onResponse(Response<CourseInfoBean> response, Retrofit retrofit) {
+                if (isCancelRequest) return;
                 CourseInfoBean courseInfo = response.body();
                 if (courseInfo == null) {
                     isLoop = true;
-                    mHandler.postDelayed(mLoopRequestRunnable, LOOP_TIME);
+                    mHandler.postDelayed(mLoopRequestRunnable, IntegerConstant.GET_COURSE_INFO_LOOP_TIME);
                     return;
                 }
 
@@ -539,12 +524,11 @@ public class StandbyActivity extends Activity {
 
                     CourseInfoBean.DataBean.CourseBean course = courseInfo.getData().getCourse();
                     if (course == null) {// 轮询获取数据线程开关由数据决定
-
                         isLoop = true;
-                        mHandler.postDelayed(mLoopRequestRunnable, LOOP_TIME);
+                        mHandler.postDelayed(mLoopRequestRunnable, IntegerConstant.GET_COURSE_INFO_LOOP_TIME);
                     } else {
                         if (course.getLiveStatus().equals(StringConstant.LIVE_STATU_ING)) {
-                            SoundPlayUtils.play(2);// 播放背景音乐
+                            SoundPlayUtils.play(IntegerConstant.SOUND_START_LOAD);// 播放背景音乐
 
                             isLoop = false;
                             Intent intent = new Intent(StandbyActivity.this, LoadActivity.class);
@@ -553,8 +537,6 @@ public class StandbyActivity extends Activity {
                             finish();
                         }
                     }
-                } else {
-                    L.w("data is null");
                 }
             }
 
@@ -574,12 +556,14 @@ public class StandbyActivity extends Activity {
                 String key = intent.getStringExtra(StringConstant.BUILD_UPDATE_KEY);
 
                 List<String> tempList = new ArrayList<>();
+                tempList.add(0, "0");
                 tempList.add(key);
+                tempList.add("0");
                 requestUserInfo(tempList);
 
                 L.d("tempList", "tempList -> " + tempList.toString());
             } else if (action.equals(StringConstant.BROAD_START_COURSE)) {// 课程开始
-                mHandler.postDelayed(mIntoLiveRunnable, 5 * 1000L);
+                mHandler.postDelayed(mIntoLiveRunnable, IntegerConstant.INTO_LIVE_COURSE_TIME);
             }
         }
     };
@@ -593,11 +577,17 @@ public class StandbyActivity extends Activity {
         finish();
     };
 
+    // 获取数据失败时间隔一定时间重复发送请求获取数据
+    private int count3 = 0;
+    private Runnable mRestartRequestUserInfoRunnable = () -> {
+        if (count3 < IntegerConstant.RESTART_REQUEST_COUNT) {
+            count3++;
+            requestUserInfo(key);
+        }
+    };
+
     // 获取用户的绑定关系
     private void requestUserInfo(List<String> tempList) {
-        tempList.add(0, "0");
-        tempList.add("0");
-
         Map<String, List<String>> param = new HashMap<>();
         param.put("headIds", tempList);
         Retrofit retrofit = new Retrofit.Builder()
@@ -612,6 +602,7 @@ public class StandbyActivity extends Activity {
         model.enqueue(new Callback<BuildBean>() {
             @Override
             public void onResponse(Response<BuildBean> response, Retrofit retrofit) {
+                if (isCancelRequest) return;
                 BuildBean buildBean = response.body();
                 if (buildBean == null) return;
 
@@ -625,13 +616,13 @@ public class StandbyActivity extends Activity {
                         System.out.println("key = " + entry.getKey() + " and value = " + entry.getValue());
 
                         Map<String, String> map = entry.getValue();
-                        String id = map.get("userId");
+                        String id = map.get(StringConstant.KEY_USER_ID);
                         if (!TextUtils.isEmpty(id) && !ids.contains(id)) {
                             ids.add(id);
 
                             // 提示有新的瘾伙伴加入
                             PartnerTipBean bean = new PartnerTipBean();
-                            String name = map.get("nick");
+                            String name = map.get(StringConstant.KEY_NICK);
                             if (TextUtils.isEmpty(name)) name = "NULL";
                             bean.setName(name);
                             if (scrollList.isJoinRun()) {
@@ -645,22 +636,24 @@ public class StandbyActivity extends Activity {
                             // 加入的瘾伙伴展示
                             PartnerBean pBean = new PartnerBean();
                             pBean.setNick(name);
-                            pBean.setHead(map.get("avatar"));
+                            pBean.setHead(map.get(StringConstant.KEY_AVATAR));
                             PartnerView view = new PartnerView(mContext);
                             view.updateView(pBean);
                             viewPartner.setPartnerView(view);
 
-                            SoundPlayUtils.play(1);// 播放背景音乐  有新的瘾伙伴加入
+                            SoundPlayUtils.play(IntegerConstant.SOUND_PARTNER_JOIN);// 播放背景音乐  有新的瘾伙伴加入
                         }
                     }
                 } else {
                     L.d("requestUserInfo", "requestUserInfo 没有获取到数据或获取数据失败");
+                    mHandler.postDelayed(mRestartRequestUserInfoRunnable, IntegerConstant.RESTART_REQUEST_TIME);
                 }
             }
 
             @Override
             public void onFailure(Throwable t) {
                 L.d("requestUserInfo", "requestUserInfo 连接服务器失败");
+                mHandler.postDelayed(mRestartRequestUserInfoRunnable, IntegerConstant.RESTART_REQUEST_TIME);
             }
         });
     }
@@ -675,7 +668,6 @@ public class StandbyActivity extends Activity {
         if (event.getAction() == KeyEvent.ACTION_UP) {
             // up 事件,这里多数情况不需要处理
         } else {
-            // down 事件或许可以直接覆盖 onKeyDown 方法, 而不是这个
             if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {// 上
                 if (isSelectTab) return true;
                 if (position - 1 < 0) {// 焦点转移到 TAB 上
@@ -705,9 +697,7 @@ public class StandbyActivity extends Activity {
                 }
             } else if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {// 左
                 if (isSelectTab) {
-                    if (isSelectLive) {// 此时选中的是直播列表
-                        // 直播列表已是最左边的 TAB  不做处理
-                    } else {// 此时选中的是点播课程列表  按左键回到直播列表
+                    if (!isSelectLive) {// 此时选中的是点播课程列表  按左键回到直播列表
                         textDemand.setBackground(null);
                         textLive.setBackground(getDrawable(R.drawable.tab_white_background));
                         isSelectLive = true;
@@ -722,7 +712,6 @@ public class StandbyActivity extends Activity {
                         }
                     }
                 }
-
             } else if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {// 右
                 if (isSelectTab) {
                     if (isSelectLive) {// 此时选中的是直播列表  按右键回到点播列表
@@ -738,25 +727,23 @@ public class StandbyActivity extends Activity {
                         } else {
                             if (imageMore.getVisibility() == View.VISIBLE) imageMore.setVisibility(View.GONE);
                         }
-                    } else {// 此时选中的是点播课程列表
-                        // 点播列表已是最右边的 TAB  不做处理
                     }
                 }
-
             } else if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {// 下
                 if (isSelectTab) {
-                    isSelectTab = false;
                     if (isSelectLive) {
                         if (dList != null && dList.size() > 0) {// 有数据才能往下
                             textLive.setBackground(getResources().getDrawable(R.drawable.tab_background));
                             textDemand.setBackground(null);
                             lAdapter.down(position);
+                            isSelectTab = false;
                         }
                     } else {
                         if (oList != null && oList.size() > 0) {// 有数据才能往下
                             textDemand.setBackground(getResources().getDrawable(R.drawable.tab_background));
                             textLive.setBackground(null);
                             oAdapter.down(position);
+                            isSelectTab = false;
                         }
                     }
                     return true;
@@ -796,11 +783,10 @@ public class StandbyActivity extends Activity {
                     intent.putExtra(StringConstant.PLAY_TYPE, StringConstant.DEMAND_PLAY_TYPE);
                     startActivity(intent);// 进入加载
                 }
-            } else if (keyCode == KeyEvent.KEYCODE_BACK) {
-                // 监控返回键
+            } else if (keyCode == KeyEvent.KEYCODE_BACK) {// 监控返回键
                 long currentTime = System.currentTimeMillis();
                 if (currentTime - time > 2000L) {
-                    Toast.makeText(this, "再按一次返回键退出程序", Toast.LENGTH_LONG).show();
+                    T.alwaysLong(mContext, "再按一次返回键退出程序");
                     time = currentTime;
                 } else {
                     finish();
@@ -836,6 +822,7 @@ public class StandbyActivity extends Activity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        isCancelRequest = true;
         if (mHandler != null) {
             mHandler = null;
         }
@@ -844,5 +831,52 @@ public class StandbyActivity extends Activity {
             dialogLoading = null;
         }
         isLoad = false;
+
+        imageBackground = null;
+        banner = null;
+        advertisement = null;
+        textName = null;
+        listLive = null;
+        listDemand = null;
+        textYear = null;
+        viewPartner = null;
+        scrollList = null;
+        imageMore = null;
+        textLive = null;
+        textDemand = null;
+        imageQr = null;
+        viewQr = null;
+
+        if (oList != null) {
+            oList.clear();
+            oList = null;
+        }
+        if (dList != null) {
+            dList.clear();
+            dList = null;
+        }
+        if (key != null) {
+            key.clear();
+            key = null;
+        }
+        if (pList != null) {
+            pList.clear();
+            pList = null;
+        }
+        if (ids != null) {
+            ids.clear();
+            ids = null;
+        }
+        if (upList != null) {
+            upList.clear();
+            upList = null;
+        }
+        if (downList != null) {
+            downList.clear();
+            downList = null;
+        }
+        mContext = null;
+        lAdapter = null;
+        oAdapter = null;
     }
 }

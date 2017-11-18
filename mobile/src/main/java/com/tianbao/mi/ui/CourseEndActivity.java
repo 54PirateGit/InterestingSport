@@ -3,6 +3,7 @@ package com.tianbao.mi.ui;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.Typeface;
 import android.media.MediaPlayer;
 import android.os.Bundle;
@@ -10,13 +11,14 @@ import android.os.Handler;
 import android.view.KeyEvent;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.squareup.picasso.Picasso;
 import com.tianbao.mi.R;
 import com.tianbao.mi.app.MyApp;
+import com.tianbao.mi.constant.IntegerConstant;
 import com.tianbao.mi.constant.StringConstant;
+import com.tianbao.mi.utils.BitmapUtils;
 import com.tianbao.mi.utils.SPUtils;
+import com.tianbao.mi.utils.T;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -29,8 +31,6 @@ public class CourseEndActivity extends Activity {
 
     @BindView(R.id.image_background)
     ImageView imageBackground;
-    @BindView(R.id.image)
-    ImageView image;
     @BindView(R.id.text_title)
     TextView textTitle;
     @BindView(R.id.text_year)
@@ -67,7 +67,6 @@ public class CourseEndActivity extends Activity {
             mp = MediaPlayer.create(CourseEndActivity.this, R.raw.course_end1);// 重新设置要播放的音频
             mp.start();// 开始播放
             mp.setOnCompletionListener(m -> {
-//                playSound();
                 mp = MediaPlayer.create(mContext, R.raw.course_end2);
                 mp.start();
             });
@@ -78,9 +77,11 @@ public class CourseEndActivity extends Activity {
 
     // 初始化视图
     private void initView() {
+        Bitmap bitmapBackground = BitmapUtils.readBitMap(mContext, R.drawable.end_background);
+        imageBackground.setImageBitmap(bitmapBackground);
+
         String string = (String) SPUtils.get(mContext, StringConstant.TIME_YEAR, "2017");
         textYear.setText(string);
-        Picasso.with(mContext).load(R.drawable.end_background).into(imageBackground);
 
         mHandler.postDelayed(mCountDownRunnable, 1000L);// 倒计时 三分钟后结束
     }
@@ -112,8 +113,8 @@ public class CourseEndActivity extends Activity {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
             // 监控返回键
             long currentTime = System.currentTimeMillis();
-            if (currentTime - time > 2000L) {
-                Toast.makeText(this, "再按一次返回键退出程序", Toast.LENGTH_LONG).show();
+            if (currentTime - time > IntegerConstant.APP_EXIT_TIME) {
+                T.alwaysLong(mContext, "再按一次返回键退出程序");
                 time = currentTime;
             } else {
                 finish();
@@ -137,6 +138,12 @@ public class CourseEndActivity extends Activity {
             mp.release();
             mp = null;
         }
+
+        imageBackground = null;
+        textTitle = null;
+        textYear = null;
+        textTime = null;
+
         mHandler = null;
         mContext = null;
     }

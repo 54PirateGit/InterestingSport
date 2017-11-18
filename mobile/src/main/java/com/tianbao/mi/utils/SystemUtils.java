@@ -1,8 +1,13 @@
 package com.tianbao.mi.utils;
 
 import android.content.Context;
+import android.os.Environment;
+import android.os.StatFs;
+import android.text.format.Formatter;
 import android.util.DisplayMetrics;
 import android.view.WindowManager;
+
+import java.io.File;
 
 /**
  * 系统相关工具类
@@ -50,5 +55,65 @@ public class SystemUtils {
     public static int px2dip(Context context, float pxValue) {
         final float scale = context.getResources().getDisplayMetrics().density;
         return (int) (pxValue / scale + 0.5f);
+    }
+
+    /**
+     * 判断 sd 卡是否可用
+     */
+    public static boolean isExternalStorageAvailable() {
+        return Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED);
+    }
+
+    /**
+     * 获取手机内部存储空间
+     *
+     * @return 以 M,G 为单位的容量
+     */
+    public static String getInternalMemorySize(Context context) {
+        File file = Environment.getDataDirectory();
+        StatFs statFs = new StatFs(file.getPath());
+        long blockSizeLong = statFs.getBlockSizeLong();
+        long blockCountLong = statFs.getBlockCountLong();
+        long size = blockCountLong * blockSizeLong;
+        return Formatter.formatFileSize(context, size);
+    }
+
+    /**
+     * 获取手机内部可用存储空间
+     *
+     * @return 以 M,G 为单位的容量
+     */
+    public static String getAvailableInternalMemorySize(Context context) {
+        File file = Environment.getDataDirectory();
+        StatFs statFs = new StatFs(file.getPath());
+        long availableBlocksLong = statFs.getAvailableBlocksLong();
+        long blockSizeLong = statFs.getBlockSizeLong();
+        return Formatter.formatFileSize(context, availableBlocksLong * blockSizeLong);
+    }
+
+    /**
+     * 获取手机外部存储空间
+     *
+     * @return 以 M,G 为单位的容量
+     */
+    public static String getExternalMemorySize(Context context) {
+        File file = Environment.getExternalStorageDirectory();
+        StatFs statFs = new StatFs(file.getPath());
+        long blockSizeLong = statFs.getBlockSizeLong();
+        long blockCountLong = statFs.getBlockCountLong();
+        return Formatter.formatFileSize(context, blockCountLong * blockSizeLong);
+    }
+
+    /**
+     * 获取手机外部可用存储空间
+     *
+     * @return 以 M,G 为单位的容量
+     */
+    public static String getAvailableExternalMemorySize(Context context) {
+        File file = Environment.getExternalStorageDirectory();
+        StatFs statFs = new StatFs(file.getPath());
+        long availableBlocksLong = statFs.getAvailableBlocksLong();
+        long blockSizeLong = statFs.getBlockSizeLong();
+        return Formatter.formatFileSize(context, availableBlocksLong * blockSizeLong);
     }
 }

@@ -6,9 +6,9 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.widget.EditText;
-import android.widget.Toast;
 
 import com.tianbao.mi.R;
+import com.tianbao.mi.app.MyApp;
 import com.tianbao.mi.bean.LoginBean;
 import com.tianbao.mi.constant.IntegerConstant;
 import com.tianbao.mi.constant.StringConstant;
@@ -16,9 +16,11 @@ import com.tianbao.mi.net.Api;
 import com.tianbao.mi.net.ApiService;
 import com.tianbao.mi.utils.L;
 import com.tianbao.mi.utils.SPUtils;
+import com.tianbao.mi.utils.T;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import butterknife.BindView;
@@ -31,7 +33,8 @@ import retrofit.Response;
 import retrofit.Retrofit;
 
 /**
- * A login screen that offers login via email/password.
+ * 登录  只在安装之后第一次打开时会跳转到此界面  登录之后就不会再到此界面
+ * 11/01
  */
 public class LoginActivity extends AppCompatActivity {
 
@@ -74,8 +77,8 @@ public class LoginActivity extends AppCompatActivity {
             public void onResponse(Response<LoginBean> response, Retrofit retrofit) {
                 L.v("response", "response == " + response.body().toString());
 
-                Intent intent = new Intent(mContext, StandbyActivity.class);
-                ArrayList<String> bannerList = null;
+                List<String> bannerList = null;
+                List<String> downList = null;
 
                 LoginBean loginBean = response.body();
                 int code = loginBean.getCode();
@@ -83,19 +86,19 @@ public class LoginActivity extends AppCompatActivity {
                     LoginBean.DataBean data = loginBean.getData();
                     if (data != null) {
                         int type = data.getType();
-                        if (type != 0) SPUtils.put(mContext, StringConstant.DATA_TYPE_SP_KEY, type);
+                        if (type != 0) SPUtils.put(mContext, StringConstant.DATA_TYPE_SP_KEY, type);// 账号类型
 
                         int storeId = data.getStoreId();
-                        if (storeId != 0) SPUtils.put(mContext, StringConstant.STORE_ID_SP_KEY, storeId);
+                        if (storeId != 0) SPUtils.put(mContext, StringConstant.STORE_ID_SP_KEY, storeId);// 店 ID
 
                         long refreshData = data.getRefreshDataFrequency();
-                        if (refreshData > 0) SPUtils.put(mContext, StringConstant.REFRESH_DATA_FREQUENCY, refreshData);
+                        if (refreshData > 0) SPUtils.put(mContext, StringConstant.REFRESH_DATA_FREQUENCY, refreshData);// 数据刷新时间
 
                         long refreshRela = data.getRefreshRelationFrequency();
-                        if (refreshRela > 0) SPUtils.put(mContext, StringConstant.REFRESH_RELATION__FREQUENCY, refreshRela);
+                        if (refreshRela > 0) SPUtils.put(mContext, StringConstant.REFRESH_RELATION__FREQUENCY, refreshRela);// 用户关系刷新时间
 
                         long refreshSort = data.getSortFrequency();
-                        if (refreshSort > 0) SPUtils.put(mContext, StringConstant.SORT_FREQUENCY, refreshSort);
+                        if (refreshSort > 0) SPUtils.put(mContext, StringConstant.SORT_FREQUENCY, refreshSort);// 用户数据排序时间
 
                         // 将轮播图地址传递到待机页  如果有数据待机页就直接展示不需要重复获取
                         String adUrls = data.getStandbyUpAdUrl();
@@ -109,23 +112,41 @@ public class LoginActivity extends AppCompatActivity {
                                 bannerList.add(url);
                             }
                         }
+
+                        // 待机页下面轮播图地址
+                        String downUrl = data.getStandbyDownAdUrl();
+                        if (!TextUtils.isEmpty(downUrl)) {
+                            if (downUrl.contains("，")) {
+                                downUrl = downUrl.replace("，", ",");
+                            }
+                            String[] downUrlArr = downUrl.split(",");
+                            for (String url : downUrlArr) {
+                                if (downList == null) downList = new ArrayList<>();
+                                downList.add(url);
+                            }
+                        }
+                        if (downList != null && downList.size() > 0) {
+                            L.d("downList", "downList size - > " + downList.size());
+                            MyApp.setDownUrl(downList);
+                        }
                     } else {
-                        Toast.makeText(mContext, "data is null", Toast.LENGTH_SHORT).show();
+                        T.alwaysShort(mContext, "data is null");
                     }
 
                     if (bannerList != null && bannerList.size() > 0) {
-                        intent.putStringArrayListExtra(StringConstant.BANNER_LIST_UP, bannerList);
+                        MyApp.setUpUrl(bannerList);
                     }
+                    Intent intent = new Intent(mContext, StandbyActivity.class);
                     startActivity(intent);
                     finish();
                 } else {
-                    Toast.makeText(mContext, "code == " + code, Toast.LENGTH_LONG).show();
+                    T.alwaysShort(mContext, "code == " + code);
                 }
             }
 
             @Override
             public void onFailure(Throwable t) {
-                Toast.makeText(mContext, "发生错误，请确认后重试", Toast.LENGTH_LONG).show();
+                T.connectFailTip(mContext);
             }
         });
     }
@@ -156,6 +177,13 @@ public class LoginActivity extends AppCompatActivity {
     @OnClick(R.id.sign_in_button)
     public void onViewClick() {
         request();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        adminText = null;
+        passwordText = null;
     }
 }
 

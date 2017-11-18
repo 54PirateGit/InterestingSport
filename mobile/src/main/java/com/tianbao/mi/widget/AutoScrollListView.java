@@ -8,6 +8,7 @@ import com.tianbao.mi.adapter.InfoListAdapter;
 import com.tianbao.mi.adapter.PartnerTipAdapter;
 import com.tianbao.mi.bean.InformationBean;
 import com.tianbao.mi.bean.PartnerTipBean;
+import com.tianbao.mi.constant.IntegerConstant;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,9 +18,6 @@ import java.util.List;
  * Created by edianzu on 2017/11/5.
  */
 public class AutoScrollListView extends ListView {
-
-    // 延时滚动时间
-    private static int DELAY_TIME = 5000;
 
     private Context mContext;
 
@@ -43,7 +41,7 @@ public class AutoScrollListView extends ListView {
         this.iList = list;
         setAdapter(new InfoListAdapter(mContext, iList));
 
-        postDelayed(updateRunnable, DELAY_TIME);
+        postDelayed(updateRunnable, IntegerConstant.DELAY_TIME);
         isTipRun = true;
     }
 
@@ -58,7 +56,7 @@ public class AutoScrollListView extends ListView {
         this.pList = list;
         setAdapter(new PartnerTipAdapter(mContext, pList));
 
-        postDelayed(updatePartnerRunnable, DELAY_TIME);
+        postDelayed(updatePartnerRunnable, IntegerConstant.DELAY_TIME);
         isJoinRun = true;
     }
 
@@ -76,7 +74,7 @@ public class AutoScrollListView extends ListView {
                 iList.remove(0);
             }
             setAdapter(new InfoListAdapter(mContext, iList));
-            postDelayed(this, DELAY_TIME);
+            postDelayed(this, IntegerConstant.DELAY_TIME);
         }
     };
 
@@ -88,7 +86,7 @@ public class AutoScrollListView extends ListView {
                 pList.remove(0);
             }
             setAdapter(new PartnerTipAdapter(mContext, pList));
-            postDelayed(this, DELAY_TIME);
+            postDelayed(this, IntegerConstant.DELAY_TIME);
         }
     };
 

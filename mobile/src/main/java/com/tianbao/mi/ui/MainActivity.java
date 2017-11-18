@@ -13,7 +13,6 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
-import android.widget.Toast;
 
 import com.tianbao.mi.R;
 import com.tianbao.mi.app.MyApp;
@@ -31,6 +30,7 @@ import com.tianbao.mi.utils.L;
 import com.tianbao.mi.utils.QrUtil;
 import com.tianbao.mi.utils.SPUtils;
 import com.tianbao.mi.utils.SoundPlayUtils;
+import com.tianbao.mi.utils.T;
 import com.tianbao.mi.widget.AutoScrollListView;
 import com.tianbao.mi.widget.AutoTypesettingLayout;
 import com.tianbao.mi.widget.MemberView;
@@ -78,20 +78,19 @@ public class MainActivity extends AppCompatActivity {
     @BindView(R.id.view_qr)
     View viewQr;
 
-    private List<InformationBean> iList = new ArrayList<>();
-
     private Context mContext;
     private BDCloudVideoView mVV = null;// 百度云播放器
     private Handler mHandler = new Handler();// 处理线程
 
-    private boolean isFront = true;// 标记此时在前在后
-
+    private List<InformationBean> iList = new ArrayList<>();
     private List<UserDataBean> mList;// 保存用户数据
     private List<MemberView> vList = new ArrayList<>();// 保存 View
-
     private List<String> dKey = new ArrayList<>();// key
 
+    private boolean isFront = true;// 标记此时在前在后
     private String playType;// 标识  点播 or 直播
+
+    private boolean isCancelRequest = false;// 取消所有网络请求
 
     // 注册广播
     private void registerBroad() {
@@ -110,7 +109,7 @@ public class MainActivity extends AppCompatActivity {
             mHandler.postDelayed(() -> {
                 startActivity(new Intent(mContext, CourseEndActivity.class));// 跳转到课程结束界面
                 finish();
-            }, 5 * 1000L);
+            }, IntegerConstant.INTO_COURSE_END);
         });
         mVV.start();
     }
@@ -185,7 +184,7 @@ public class MainActivity extends AppCompatActivity {
         mHandler.postDelayed(mLoopUserDataRunnable, IntegerConstant.REFRESH_DATA_FREQUENCY);// 隔一定时间去获取用户数据
         mHandler.post(mLoopUserRelaRunnable);// 隔一定时间去获取用户绑定关系
         mHandler.postDelayed(mLoopSort, IntegerConstant.SORT_FREQUENCY);// 隔一定时间去根据用户数据排序
-        mHandler.postDelayed(mChangeViewRunnable, 7 * 1000L);// 前后面交换数据
+        mHandler.postDelayed(mChangeViewRunnable, IntegerConstant.FRONT_BACK_DATA_CHANGE_FIRST);// 前后面交换数据
     }
 
     // 轮询去获取用户数据
@@ -223,6 +222,8 @@ public class MainActivity extends AppCompatActivity {
             if (action.equals(StringConstant.BROAD_BUILD_UPDATE)) {// 有新的用户绑定关系需要处理
                 requestUserInfo();
             } else if (action.equals(StringConstant.BROAD_END_COURSE)) {// 课程结束
+                SoundPlayUtils.play(IntegerConstant.SOUND_COURSE_END);
+
                 startActivity(new Intent(mContext, CourseEndActivity.class));// 跳转到课程结束界面
                 finish();
             }
@@ -244,6 +245,7 @@ public class MainActivity extends AppCompatActivity {
         model.enqueue(new Callback<RecordBean>() {
             @Override
             public void onResponse(Response<RecordBean> response, Retrofit retrofit) {
+                if (isCancelRequest) return;
                 RecordBean recordBean = response.body();
                 int code = recordBean.getCode();
                 if (code == IntegerConstant.RESULT_OK) {
@@ -285,8 +287,8 @@ public class MainActivity extends AppCompatActivity {
                     Map<String, String> dData = dMap.get(key);
                     if (dData == null) dData = new HashMap<>();
 
-                    bean.setHeartRate(dData.get("heartRate"));
-                    String rate = dData.get("rate");
+                    bean.setHeartRate(dData.get(StringConstant.KEY_HEART_RATE));
+                    String rate = dData.get(StringConstant.KEY_RATE);
                     if (TextUtils.isEmpty(rate) || rate.equals("0") || rate.equals("--")) {// 获取空的数据
                         String oldRate = mList.get(i).getRate();// 取出上一次的数据
                         if (oldRate != null) {
@@ -297,7 +299,7 @@ public class MainActivity extends AppCompatActivity {
                                 long lastTime = bean.getLastTime();// 取出记录为空时的时间
                                 if (lastTime != 0) {// 不为 0
                                     long time = System.currentTimeMillis();// 获取当前时间  用于比较
-                                    if (time - lastTime >= 5 * 60 * 1000L) {// 数据空档期已经超过 5 分钟
+                                    if (time - lastTime >= IntegerConstant.DATA_NEUTRAL_GEAR_TIME) {// 数据空档期已经超过 5 分钟
 
                                         L.i("TimeDifference", "TimeDifference -> " + (time - lastTime));
 
@@ -318,11 +320,11 @@ public class MainActivity extends AppCompatActivity {
                     Map<String, String> rData = rMap.get(key);
                     if (rData == null) rData = new HashMap<>();
 
-                    bean.setAvatar(rData.get("avatar"));
-                    bean.setNick(rData.get("nick"));
-                    bean.setSex(rData.get("sex"));
-                    bean.setOpenId(rData.get("openId"));
-                    bean.setUserId(rData.get("userId"));
+                    bean.setAvatar(rData.get(StringConstant.KEY_AVATAR));
+                    bean.setNick(rData.get(StringConstant.KEY_NICK));
+                    bean.setSex(rData.get(StringConstant.KEY_SEX));
+                    bean.setOpenId(rData.get(StringConstant.KEY_OPEN_ID));
+                    bean.setUserId(rData.get(StringConstant.KEY_OPEN_ID));
                     break;
                 }
             }
@@ -376,7 +378,7 @@ public class MainActivity extends AppCompatActivity {
                     iList.add(iBean);
                     autoScrollListView.setInfoList(iList);
                 }
-                SoundPlayUtils.play(7);
+                SoundPlayUtils.play(IntegerConstant.SOUND_WARM);
             }
         }
     }
@@ -428,7 +430,7 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 mList.get(i).setSort(0);
             }
-            SoundPlayUtils.play(6);
+            SoundPlayUtils.play(IntegerConstant.SOUND_YES);
         }
 
         iBean.setSortList(sList);
@@ -478,14 +480,14 @@ public class MainActivity extends AppCompatActivity {
                 viewRightBack.startAnim(!isFront);
                 isFront = !isFront;
             }
-            mHandler.postDelayed(this, 5 * 1000L);
+            mHandler.postDelayed(this, IntegerConstant.FRONT_BACK_DATA_CHANGE);
         }
     };
 
     // 没有获取到数据或获取数据失败时重复获取数据
     private int count = 0;
-    private Runnable reStartRequest =() -> {
-        if (count < 5) {
+    private Runnable reStartRequestRunnable =() -> {
+        if (count < IntegerConstant.RESTART_REQUEST_COUNT) {
             requestUserInfo();
             count++;
         }
@@ -504,11 +506,12 @@ public class MainActivity extends AppCompatActivity {
         model.enqueue(new Callback<BuildBean>() {
             @Override
             public void onResponse(Response<BuildBean> response, Retrofit retrofit) {
+                if (isCancelRequest) return;
                 BuildBean buildBean = response.body();
                 int code = buildBean.getCode();
                 if (IntegerConstant.RESULT_OK == code) {
-                    if (mHandler!= null && reStartRequest != null) {
-                        mHandler.removeCallbacks(reStartRequest);
+                    if (mHandler!= null && reStartRequestRunnable != null) {
+                        mHandler.removeCallbacks(reStartRequestRunnable);
                     }
                     rMap = buildBean.getData();
                     List<String> tempList = new ArrayList<>();
@@ -517,13 +520,14 @@ public class MainActivity extends AppCompatActivity {
                     }
                     assemblyData(tempList);
                 } else {
-                    mHandler.postDelayed(reStartRequest, 2000L);
+                    mHandler.postDelayed(reStartRequestRunnable, IntegerConstant.RESTART_REQUEST_TIME);
                     L.w("requestUserInfo", "没有获取到用户绑定数据或没有用户绑定数据");
                 }
             }
 
             @Override
             public void onFailure(Throwable t) {
+                mHandler.postDelayed(reStartRequestRunnable, IntegerConstant.RESTART_REQUEST_TIME);
                 L.w("requestUserInfo", "连接服务器失败");
             }
         });
@@ -545,6 +549,7 @@ public class MainActivity extends AppCompatActivity {
         model.enqueue(new Callback<CourseInfoBean>() {
             @Override
             public void onResponse(Response<CourseInfoBean> response, Retrofit retrofit) {
+                if (isCancelRequest) return;
                 CourseInfoBean courseInfo = response.body();
                 if (courseInfo == null) {
                     mHandler.postDelayed(mLoopRequestRunnable, IntegerConstant.GET_LIVE_COURSE_STATUS);
@@ -559,6 +564,8 @@ public class MainActivity extends AppCompatActivity {
                     } else {
                         String status = course.getLiveStatus();
                         if (status.equals(StringConstant.LIVE_STATU_OVER)) {
+                            SoundPlayUtils.play(IntegerConstant.SOUND_COURSE_END);
+
                             startActivity(new Intent(mContext, CourseEndActivity.class));// 跳转到课程结束界面
                             finish();
                         } else {
@@ -594,6 +601,7 @@ public class MainActivity extends AppCompatActivity {
         model.enqueue(new Callback<CurrencyBean>() {
             @Override
             public void onResponse(Response<CurrencyBean> response, Retrofit retrofit) {
+                if (isCancelRequest) return;
                 CurrencyBean bean = response.body();
                 if (bean == null) return ;
                 int code = bean.getCode();
@@ -631,8 +639,8 @@ public class MainActivity extends AppCompatActivity {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
             if (playType.equals(StringConstant.LIVE_PLAY_TYPE)) {
                 long currentTime = System.currentTimeMillis();
-                if (currentTime - time > 2000L) {
-                    Toast.makeText(mContext, "再按一次返回键退出程序", Toast.LENGTH_LONG).show();
+                if (currentTime - time > IntegerConstant.APP_EXIT_TIME) {
+                    T.alwaysLong(mContext, "再按一次返回键退出程序");
                     time = currentTime;
                 } else {
                     finish();
@@ -649,6 +657,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        isCancelRequest = true;
+
         if (mVV != null) {
             mVV.release();
             mVV = null;
@@ -672,6 +682,10 @@ public class MainActivity extends AppCompatActivity {
         if (mChangeViewRunnable != null) {
             mHandler.removeCallbacks(mChangeViewRunnable);
             mChangeViewRunnable = null;
+        }
+
+        if (reStartRequestRunnable != null) {
+            mHandler.removeCallbacks(reStartRequestRunnable);
         }
 
         if (mList != null) {

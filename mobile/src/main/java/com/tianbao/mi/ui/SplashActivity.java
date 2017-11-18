@@ -3,28 +3,31 @@ package com.tianbao.mi.ui;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
 import com.tianbao.mi.R;
 import com.tianbao.mi.app.MyApp;
-import com.tianbao.mi.bean.UploadData;
 import com.tianbao.mi.bean.CourseInfoBean;
 import com.tianbao.mi.bean.LoginBean;
 import com.tianbao.mi.bean.MotionData;
+import com.tianbao.mi.bean.UploadData;
 import com.tianbao.mi.bean.UploadDataBean;
+import com.tianbao.mi.bean.UserHeart;
 import com.tianbao.mi.constant.IntegerConstant;
 import com.tianbao.mi.constant.StringConstant;
 import com.tianbao.mi.net.Api;
 import com.tianbao.mi.net.ApiService;
+import com.tianbao.mi.utils.BitmapUtils;
 import com.tianbao.mi.utils.L;
 import com.tianbao.mi.utils.SPUtils;
+import com.tianbao.mi.utils.T;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -37,6 +40,8 @@ import retrofit.GsonConverterFactory;
 import retrofit.Response;
 import retrofit.Retrofit;
 
+import static com.tianbao.mi.constant.IntegerConstant.RESTART_REQUEST_TIME;
+
 /**
  * 启动界面
  */
@@ -45,6 +50,9 @@ public class SplashActivity extends Activity {
     private Handler mHandler = new Handler();
     private Context mContext;
     private ImageView advertisement;
+    private ImageView imageBackground;
+
+    private boolean isCancelRequest;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,26 +63,28 @@ public class SplashActivity extends Activity {
         initView();
 
 //        uploadData();
+//        uploadUser();
     }
 
     // 初始化视图
     private void initView() {
+        imageBackground = findViewById(R.id.image_background);
+        Bitmap bitmap = BitmapUtils.readBitMap(mContext, R.drawable.splash);
+        imageBackground.setImageBitmap(bitmap);
+
         advertisement = findViewById(R.id.advertisement);
-
-//        Picasso.with(mContext).load(R.drawable.d3).into(advertisement);
-
         init();
     }
 
     // 初始化
     private void init() {
         int type = (int) SPUtils.get(mContext, StringConstant.DATA_TYPE_SP_KEY, 0);// 如果已经登录过则有数据
-        type = IntegerConstant.CALISTHENICS_SYSTEM_TYPE;
-        if (type == 0) {
-            new Handler().postDelayed(() -> {
+//        type = IntegerConstant.CALISTHENICS_SYSTEM_TYPE;
+        if (type == 0) {// == 0 说明是安装之后第一次打开 app
+            mHandler.postDelayed(() -> {
                 startActivity(new Intent(mContext, LoginActivity.class));
                 finish();
-            }, 4000L);// 跳转到登录
+            }, IntegerConstant.SPLASH_INTO_TIME);// 跳转到登录
         } else if (type == IntegerConstant.DYNAMIC_SYSTEM_TYPE) {// 动感单车
             IntegerConstant.STORE_ID = (int) SPUtils.get(mContext, StringConstant.STORE_ID_SP_KEY, 0);// 如果已经登录过则有数据
 
@@ -86,8 +96,10 @@ public class SplashActivity extends Activity {
             }
             requestApp(StringConstant.DEVICE_ID);
         } else if (type == IntegerConstant.CALISTHENICS_SYSTEM_TYPE) {// 团操
-            Intent intent = new Intent(mContext, CalisthenicsActivity.class);
-            startActivity(intent);
+            mHandler.postDelayed(() -> {
+                startActivity(new Intent(mContext, CalisthenicsActivity.class));
+                finish();
+            }, IntegerConstant.SPLASH_INTO_TIME);
         }
     }
 
@@ -107,6 +119,7 @@ public class SplashActivity extends Activity {
         model.enqueue(new Callback<CourseInfoBean>() {
             @Override
             public void onResponse(Response<CourseInfoBean> response, Retrofit retrofit) {
+                if (isCancelRequest) return;
                 CourseInfoBean courseInfo = response.body();
                 int code = courseInfo.getCode();
                 if (code == IntegerConstant.RESULT_OK) {
@@ -131,11 +144,11 @@ public class SplashActivity extends Activity {
     // 没有获取到数据时重复发送请求获取数据  5 次没有获取到数据时提示检查网络环境
     private int count = 0;
     private Runnable mLoopRequestRunnable = () -> {
-        if (count < 5) {
+        if (count < IntegerConstant.RESTART_REQUEST_COUNT) {
             requestApp(StringConstant.DEVICE_ID);
             count++;
-            if (count == 5) {
-                Toast.makeText(mContext, "无法连接网络，请检查网络连接", Toast.LENGTH_LONG).show();
+            if (count == IntegerConstant.RESTART_REQUEST_COUNT) {
+                T.noNetTip(mContext);
             }
         }
     };
@@ -154,9 +167,9 @@ public class SplashActivity extends Activity {
         model.enqueue(new Callback<LoginBean>() {
             @Override
             public void onResponse(Response<LoginBean> response, Retrofit retrofit) {
+                if (isCancelRequest) return;
                 LoginBean bean = response.body();
                 if (bean != null) {
-                    Intent intent = new Intent(mContext, StandbyActivity.class);
                     ArrayList<String> upList = null;
                     ArrayList<String> downList = null;
                     int code = bean.getCode();
@@ -164,18 +177,18 @@ public class SplashActivity extends Activity {
                         LoginBean.DataBean dBean = bean.getData();
                         long df = dBean.getRefreshDataFrequency();
                         if (df > 0) {
-                            IntegerConstant.REFRESH_DATA_FREQUENCY = df;
+                            IntegerConstant.REFRESH_DATA_FREQUENCY = df;// 用户数据刷新时间
                         }
                         long rf = dBean.getRefreshRelationFrequency();
                         if (rf > 0) {
-                            IntegerConstant.REFRESH_RELATION__FREQUENCY = rf;
+                            IntegerConstant.REFRESH_RELATION__FREQUENCY = rf;// 用户关系刷新时间
                         }
                         long sf = dBean.getSortFrequency();
                         if (sf > 0) {
-                            IntegerConstant.SORT_FREQUENCY = sf;
+                            IntegerConstant.SORT_FREQUENCY = sf;// 用户数据排序刷新时间
                         }
 
-                        String urlString = dBean.getSplashAdUrl();
+                        String urlString = dBean.getSplashAdUrl();// 启动页图片地址
                         if (!TextUtils.isEmpty(urlString)) {
                             initBanner(urlString);
                         } else {
@@ -198,10 +211,10 @@ public class SplashActivity extends Activity {
                                 upList.add(url);
                             }
                         }
-
                         if (upList != null && upList.size() > 0) {
                             L.d("upList", "upList size - > " + upList.size());
-                            intent.putStringArrayListExtra(StringConstant.BANNER_LIST_UP, upList);
+                            MyApp.setUpUrl(upList);
+//                            intent.putStringArrayListExtra(StringConstant.BANNER_LIST_UP, upList);
                         }
 
                         // 待机页下面轮播图地址
@@ -216,6 +229,11 @@ public class SplashActivity extends Activity {
                                 downList.add(url);
                             }
                         }
+                        if (downList != null && downList.size() > 0) {
+                            L.d("downList", "downList size - > " + downList.size());
+                            MyApp.setDownUrl(downList);
+//                            intent.putStringArrayListExtra(StringConstant.BANNER_LIST_DOWN, downList);
+                        }
 
                         // 加载界面图片地址
                         String leftUrl = dBean.getLoadLeftAdUrl();
@@ -227,40 +245,36 @@ public class SplashActivity extends Activity {
                             MyApp.setLoadUrl(rightUrl);
                         }
 
-                        if (downList != null && downList.size() > 0) {
-                            L.d("downList", "downList size - > " + downList.size());
-                            intent.putStringArrayListExtra(StringConstant.BANNER_LIST_DOWN, downList);
-                        }
-
-                        new Handler().postDelayed(() -> {
+                        mHandler.postDelayed(() -> {
+                            Intent intent = new Intent(mContext, StandbyActivity.class);
                             startActivity(intent);
                             finish();
-                        }, 5000L);
+                        }, IntegerConstant.SPLASH_INTO_TIME);
                     } else {
-                        if (count == 5) {
+                        if (count == IntegerConstant.RESTART_REQUEST_COUNT) {// 重复请求依然获取不到数据时也需要进入界面
                             startActivity(new Intent(mContext, StandbyActivity.class));// 没有课程信息
                             finish();
                         } else {
-                            mHandler.postDelayed(mLoopRequestRunnable, 2000L);
+                            mHandler.postDelayed(mLoopRequestRunnable, RESTART_REQUEST_TIME);
                         }
                     }
                 } else {
-                    if (count == 5) {
+                    if (count == IntegerConstant.RESTART_REQUEST_COUNT) {
                         startActivity(new Intent(mContext, StandbyActivity.class));// 没有课程信息
                         finish();
                     } else {
-                        mHandler.postDelayed(mLoopRequestRunnable, 2000L);
+                        mHandler.postDelayed(mLoopRequestRunnable, IntegerConstant.RESTART_REQUEST_TIME);
                     }
                 }
             }
 
             @Override
             public void onFailure(Throwable t) {
-                if (count == 5) {
+                if (count == IntegerConstant.RESTART_REQUEST_COUNT) {
                     startActivity(new Intent(mContext, StandbyActivity.class));// 没有课程信息
                     finish();
                 } else {
-                    mHandler.postDelayed(mLoopRequestRunnable, 2000L);
+                    mHandler.postDelayed(mLoopRequestRunnable, IntegerConstant.RESTART_REQUEST_TIME);
                 }
             }
         });
@@ -308,21 +322,69 @@ public class SplashActivity extends Activity {
         ApiService service = retrofit.create(ApiService.class);
         Call<UploadDataBean> model = service.saveMotionData(uploadData);
 
+        L.i("uploadData", "uploadData -> " + uploadData.toString());
+
         model.enqueue(new Callback<UploadDataBean>() {
             @Override
             public void onResponse(Response<UploadDataBean> response, Retrofit retrofit) {
                 UploadDataBean bean = response.body();
                 int code = bean.getCode();
                 if (code == IntegerConstant.RESULT_OK) {
-                    Toast.makeText(mContext, "数据上传成功", Toast.LENGTH_SHORT).show();
+                    T.showShort(mContext, "数据上传成功");
                 } else {
-                    Toast.makeText(mContext, "数据上传失败", Toast.LENGTH_SHORT).show();
+                    T.showShort(mContext, "数据上传失败");
                 }
             }
 
             @Override
             public void onFailure(Throwable t) {
-                Toast.makeText(mContext, "连接服务器失败", Toast.LENGTH_SHORT).show();
+                T.connectFailTip(mContext);
+            }
+        });
+    }
+
+    // 上传用户数据
+    private void uploadUser() {
+        UploadData uploadData = new UploadData();
+        List<UserHeart> mDataList = new ArrayList<>();
+        UserHeart mData = new UserHeart();
+        mData.setUserId(47);
+        mData.setHeart(76);
+        mDataList.add(mData);
+
+        mData = new UserHeart();
+        mData.setUserId(48);
+        mData.setHeart(78);
+        mDataList.add(mData);
+
+        uploadData.setUserHeartList(mDataList);
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("http://192.168.1.111:8080")
+//                .baseUrl(Api.BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        ApiService service = retrofit.create(ApiService.class);
+        Call<UploadDataBean> model = service.addHeart(uploadData);
+
+        L.i("uploadData", "uploadData -> " + uploadData.toString());
+
+        model.enqueue(new Callback<UploadDataBean>() {
+            @Override
+            public void onResponse(Response<UploadDataBean> response, Retrofit retrofit) {
+                UploadDataBean bean = response.body();
+                int code = bean.getCode();
+                if (code == IntegerConstant.RESULT_OK) {
+                    T.showShort(mContext, "数据上传成功");
+                } else {
+                    T.showShort(mContext, "数据上传失败");
+                }
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                T.connectFailTip(mContext);
             }
         });
     }
@@ -331,6 +393,7 @@ public class SplashActivity extends Activity {
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if(keyCode == KeyEvent.KEYCODE_BACK) {
+            L.d("onKeyDown", "此时正在加载数据 所以拦截返回键");
             return true;
         }
         return super.onKeyDown(keyCode, event);
@@ -339,6 +402,7 @@ public class SplashActivity extends Activity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        isCancelRequest = true;
         if (mHandler != null) {
             if (mLoopRequestRunnable != null) {
                 mHandler.removeCallbacks(mLoopRequestRunnable);
@@ -346,5 +410,9 @@ public class SplashActivity extends Activity {
             }
             mHandler = null;
         }
+
+        imageBackground = null;
+        advertisement = null;
+        mContext = null;
     }
 }

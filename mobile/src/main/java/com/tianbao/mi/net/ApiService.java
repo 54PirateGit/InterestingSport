@@ -67,4 +67,8 @@ public interface ApiService {
     // 获取点播列表
     @POST(Api.GET_ON_DEMAND_LIST)
     Call<OnDemandCourseBean> getOnDemandList();
+
+    // 添加心率
+    @POST(Api.ADD_HEART)
+    Call<UploadDataBean> addHeart(@Body UploadData param);
 }

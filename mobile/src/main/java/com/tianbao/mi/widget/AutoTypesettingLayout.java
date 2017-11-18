@@ -9,6 +9,7 @@ import android.util.AttributeSet;
 import android.view.View;
 import android.widget.LinearLayout;
 
+import com.tianbao.mi.constant.IntegerConstant;
 import com.tianbao.mi.utils.SystemUtils;
 
 /**
@@ -26,11 +27,6 @@ public class AutoTypesettingLayout extends LinearLayout {
 
     public AutoTypesettingLayout(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
-        mContext = context;
-    }
-
-    public AutoTypesettingLayout(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
-        super(context, attrs, defStyleAttr);
         mContext = context;
     }
 
@@ -82,14 +78,14 @@ public class AutoTypesettingLayout extends LinearLayout {
         ObjectAnimator objectAnimator2 = ObjectAnimator.ofFloat(view, "alpha", 0.5f, 0);
         AnimatorSet set1 = new AnimatorSet();
         set1.playTogether(objectAnimator1, objectAnimator2);
-        set1.setDuration(1000L);
+        set1.setDuration(IntegerConstant.AUTO_ANIM_TIME);
         set1.start();
 
         new Handler().postDelayed(() -> {
             ObjectAnimator objectAnimator3 = ObjectAnimator.ofFloat(view, "rotationX", 180f, 0);
             AnimatorSet set2 = new AnimatorSet();
             set2.playTogether(objectAnimator3);
-            set2.setDuration(1000L);
+            set2.setDuration(IntegerConstant.AUTO_ANIM_TIME);
             set2.start();
         }, 1200L);
     }
@@ -99,7 +95,13 @@ public class AutoTypesettingLayout extends LinearLayout {
         ObjectAnimator objectAnimator = ObjectAnimator.ofFloat(view, "alpha", 0, 0.5f);
         AnimatorSet set = new AnimatorSet();
         set.playTogether(objectAnimator);
-        set.setDuration(1000L);
+        set.setDuration(IntegerConstant.AUTO_ANIM_TIME);
         set.start();
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        mContext = null;
     }
 }

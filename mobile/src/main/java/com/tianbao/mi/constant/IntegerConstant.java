@@ -10,6 +10,15 @@ public class IntegerConstant {
     // 网络请求成功
     public final static int RESULT_OK = 200;
 
+    // 启动页停留时间
+    public final static long SPLASH_INTO_TIME = 5 * 1000L;
+
+    // 没有获取到数据时重复发送请求时的间隔时间
+    public final static long RESTART_REQUEST_TIME = 2 * 1000L;
+
+    // 当出现网络不好或者请求数据失败时重新获取数据的次数
+    public static long RESTART_REQUEST_COUNT = 5;
+
     // Dynamic bike 系统类型
     public final static int DYNAMIC_SYSTEM_TYPE = 1;
 
@@ -33,6 +42,39 @@ public class IntegerConstant {
 
     // 获取直播课程直播状态
     public static long GET_LIVE_COURSE_STATUS = 5 * 60 * 1000L;
+
+    // 获取直播列表时间
+    public static long GET_LIVE_COURSE_LIST = 5 * 60 * 1000L;
+
+    // 直播课程开始延迟进入直播界面时间
+    public static long INTO_LIVE_COURSE_TIME = 15 * 1000L;
+
+    // 待机页 隔一定时间去获取课程信息
+    public final static long GET_COURSE_INFO_LOOP_TIME = 3 * 60 * 1000L;
+
+    // 待机页 隔一定时间去获取课程信息
+    public final static long APP_EXIT_TIME = 2 * 1000L;
+
+    // 课程结束之后停留短暂时间跳转到课程结束界面
+    public final static long INTO_COURSE_END = 5 * 1000L;
+
+    // 用户数据空挡时间 超过这个时间则执行掉线逻辑
+    public final static long DATA_NEUTRAL_GEAR_TIME = 5 * 60 * 1000L;
+
+    // 用户数据前后面交换时间 需要跟前后翻动时间有个时间差所以多 2 秒
+    public final static long FRONT_BACK_DATA_CHANGE_FIRST = 7 * 1000L;
+
+    // 用户数据空挡时间 超过这个时间则执行掉线逻辑
+    public final static long FRONT_BACK_DATA_CHANGE = 5 * 1000L;
+
+    // 延时滚动时间
+    public final static long DELAY_TIME = 5 * 1000L;
+
+    // 延时滚动时间
+    public final static long AUTO_ANIM_TIME = 1000L;
+
+    // 自动翻动时间
+    public final static long AUTO_SCROLL_TIME = 5 * 1000L;
 
     // view 类型 排序
     public final static int VIEW_TYPE_SORT = 1;
@@ -58,4 +100,24 @@ public class IntegerConstant {
     // 高强度运动时最大心率值
 //    public final static int MAX_HEAR_RATE = 195;
 
+    // 有新的瘾伙伴加入
+    public final static int SOUND_PARTNER_JOIN = 1;
+
+    // 开始加载
+    public final static int SOUND_START_LOAD = 2;
+
+    // 卡路里增加了
+    public final static int SOUND_CALORIE_ADD = 3;
+
+    // 课程开始
+    public final static int SOUND_START_COURSE = 4;
+
+    // 课程结束
+    public final static int SOUND_COURSE_END = 5;
+
+    // 第一名发生变化
+    public final static int SOUND_YES = 6;
+
+    // 心率过快
+    public final static int SOUND_WARM = 7;
 }

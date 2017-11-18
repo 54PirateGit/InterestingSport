@@ -33,9 +33,10 @@ public class MyApp extends Application {
     private static MyApp mContext;
 
     private static int courseId = 0;
-    private static String courseEndTime = "0";
 
     private static List<String> loadImageUrl;// 加载界面图片地址
+    private static List<String> upUrl;// 待机界面图片地址
+    private static List<String> downUrl;// 待机界面图片二维码
 
     /**
      * 获取图片地址
@@ -51,6 +52,22 @@ public class MyApp extends Application {
     public static void setLoadUrl(String url) {
         if (MyApp.loadImageUrl == null) MyApp.loadImageUrl = new ArrayList<>();
         MyApp.loadImageUrl.add(url);
+    }
+
+    public static List<String> getUpUrl() {
+        return upUrl;
+    }
+
+    public static void setUpUrl(List<String> upUrl) {
+        MyApp.upUrl = upUrl;
+    }
+
+    public static List<String> getDownUrl() {
+        return downUrl;
+    }
+
+    public static void setDownUrl(List<String> downUrl) {
+        MyApp.downUrl = downUrl;
     }
 
     /**
@@ -82,22 +99,6 @@ public class MyApp extends Application {
 
     public static Context getContext() {
         return mContext;
-    }
-
-    /**
-     * 获取课程结束时间
-     * @return 阶乘结束时间
-     */
-    public static String getCourseEndTime() {
-        return MyApp.courseEndTime;
-    }
-
-    /**
-     * 设置课程结束时间
-     * @param endTime 课程结束时间
-     */
-    public static void setCourseEndTime(String endTime) {
-        MyApp.courseEndTime = endTime;
     }
 
     /**

@@ -13,8 +13,8 @@
         android:id="@+id/view_left_front"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
         android:layout_marginLeft="20dp"
+        android:layout_marginTop="20dp"
         android:orientation="horizontal">
 
     </com.tianbao.mi.widget.CalisthenicsLayout>
@@ -23,10 +23,10 @@
         android:id="@+id/view_left_back"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
         android:layout_marginLeft="20dp"
-        android:visibility="visible"
-        android:orientation="horizontal">
+        android:layout_marginTop="20dp"
+        android:orientation="horizontal"
+        android:visibility="visible">
 
     </com.tianbao.mi.widget.CalisthenicsLayout>
 
@@ -35,8 +35,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
-        android:layout_marginTop="20dp"
         android:layout_marginRight="20dp"
+        android:layout_marginTop="20dp"
         android:orientation="horizontal">
 
     </com.tianbao.mi.widget.CalisthenicsLayout>
@@ -46,10 +46,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
-        android:layout_marginTop="20dp"
         android:layout_marginRight="20dp"
-        android:visibility="visible"
-        android:orientation="horizontal">
+        android:layout_marginTop="20dp"
+        android:orientation="horizontal"
+        android:visibility="visible">
 
     </com.tianbao.mi.widget.CalisthenicsLayout>
 
@@ -57,9 +57,9 @@
         android:id="@+id/view_info"
         android:layout_width="600dp"
         android:layout_height="100dp"
-        android:layout_marginBottom="25dp"
-        android:layout_centerHorizontal="true"
         android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="25dp"
         android:background="@drawable/card_background">
 
         <LinearLayout
@@ -67,9 +67,9 @@
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_alignParentRight="true"
+            android:layout_marginBottom="10dp"
             android:layout_marginRight="10dp"
             android:layout_marginTop="5dp"
-            android:layout_marginBottom="10dp"
             android:orientation="horizontal">
 
             <LinearLayout
@@ -85,8 +85,8 @@
                         android:background="@color/limitColor"/>
 
                     <TextView
-                        android:text="身体极限"
-                        style="@style/ColorTextViewStyle"/>
+                        style="@style/ColorTextViewStyle"
+                        android:text="身体极限"/>
 
                 </LinearLayout>
 
@@ -98,8 +98,8 @@
                         android:background="@color/accumulationColor"/>
 
                     <TextView
-                        android:text="乳酸堆积"
-                        style="@style/ColorTextViewStyle"/>
+                        style="@style/ColorTextViewStyle"
+                        android:text="乳酸堆积"/>
 
                 </LinearLayout>
 
@@ -111,8 +111,8 @@
                         android:background="@color/consumeColor"/>
 
                     <TextView
-                        android:text="糖原消耗"
-                        style="@style/ColorTextViewStyle"/>
+                        style="@style/ColorTextViewStyle"
+                        android:text="糖原消耗"/>
 
                 </LinearLayout>
 
@@ -132,8 +132,8 @@
                         android:background="@color/burningColor"/>
 
                     <TextView
-                        android:text="燃烧脂肪"
-                        style="@style/ColorTextViewStyle"/>
+                        style="@style/ColorTextViewStyle"
+                        android:text="燃烧脂肪"/>
 
                 </LinearLayout>
 
@@ -145,8 +145,8 @@
                         android:background="@color/relaxColor"/>
 
                     <TextView
-                        android:text="放松热身"
-                        style="@style/ColorTextViewStyle"/>
+                        style="@style/ColorTextViewStyle"
+                        android:text="放松热身"/>
 
                 </LinearLayout>
 
@@ -168,10 +168,10 @@
             android:layout_width="80dp"
             android:layout_height="80dp"
             android:layout_centerVertical="true"
-            android:layout_toLeftOf="@id/view_color"
-            android:visibility="gone"
             android:layout_marginRight="20dp"
-            android:orientation="vertical">
+            android:layout_toLeftOf="@id/view_color"
+            android:orientation="vertical"
+            android:visibility="gone">
 
             <ImageView
                 android:id="@+id/image_qr"

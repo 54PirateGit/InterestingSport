@@ -7,6 +7,8 @@ import android.widget.ImageView;
 
 import com.squareup.picasso.Picasso;
 import com.tianbao.mi.R;
+import com.tianbao.mi.constant.IntegerConstant;
+import com.tianbao.mi.utils.BitmapUtils;
 import com.tianbao.mi.widget.banner.BannerPagerAdapter;
 
 import java.util.List;
@@ -47,11 +49,11 @@ public class BannerAdapter extends BannerPagerAdapter {
         View view = LayoutInflater.from(mContext).inflate(R.layout.item_banner, null);
         ImageView image = view.findViewById(R.id.image);
 
-        if (code == 200) {
+        if (code == IntegerConstant.RESULT_OK) {
             // 加载网络图片
             Picasso.with(mContext).load(data.get(position)).into(image);
         } else {
-            image.setImageResource(testData.get(position));
+            image.setImageBitmap(BitmapUtils.readBitMap(mContext, testData.get(position)));
         }
         return view;
     }

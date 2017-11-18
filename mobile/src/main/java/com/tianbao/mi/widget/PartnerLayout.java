@@ -9,6 +9,8 @@ import android.util.AttributeSet;
 import android.view.View;
 import android.widget.LinearLayout;
 
+import com.tianbao.mi.constant.IntegerConstant;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,25 +20,18 @@ import java.util.List;
  */
 public class PartnerLayout extends LinearLayout {
 
-    private Context mContext;
     private Handler mHandler = new Handler();
     private List<PartnerView> vList;
     private List<PartnerView> tList;
     private boolean isLoop;
+    private int position = 0;// 当前所在位置
 
     public PartnerLayout(Context context) {
         super(context);
-        mContext = context;
     }
 
     public PartnerLayout(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
-        mContext = context;
-    }
-
-    public PartnerLayout(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
-        super(context, attrs, defStyleAttr);
-        mContext = context;
     }
 
     // 循环展示
@@ -54,7 +49,7 @@ public class PartnerLayout extends LinearLayout {
                         }
                     }
 
-                    new Handler().postDelayed(() -> {
+                    mHandler.postDelayed(() -> {
                         removeAllViews();
                         if (tList == null) tList = new ArrayList<>();
                         else tList.clear();
@@ -63,21 +58,15 @@ public class PartnerLayout extends LinearLayout {
                             tList.add(vList.get(position));
                         }
                         if (tList.size() < 6) position = 0;
-                        for (int i=0; i<tList.size(); i++) {
-                            addView(tList.get(i));
-                        }
-                        for (int i=0; i<getChildCount(); i++) {
-                            animBack(getChildAt(i));
-                        }
+                        for (int i=0; i<tList.size(); i++) addView(tList.get(i));
+                        for (int i=0; i<getChildCount(); i++) animBack(getChildAt(i));
                         invalidate();
                     }, 1200L);
                 } else {
                     removeAllViews();
                     if (tList == null) tList = new ArrayList<>();
                     else tList.clear();
-                    for (int i=0; i<vList.size(); i++) {
-                        tList.add(vList.get(i));
-                    }
+                    for (int i=0; i<vList.size(); i++) tList.add(vList.get(i));
                     for (int i=0; i<tList.size(); i++) {
                         View view = tList.get(i);
                         view.setAlpha(0.5f);
@@ -86,7 +75,7 @@ public class PartnerLayout extends LinearLayout {
                     invalidate();
                 }
             }
-            mHandler.postDelayed(this, 5000L);
+            mHandler.postDelayed(this, IntegerConstant.AUTO_SCROLL_TIME);
         }
     };
 
@@ -129,5 +118,24 @@ public class PartnerLayout extends LinearLayout {
         set.start();
     }
 
-    private int position = 0;// 当前所在位置
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        if (mHandler != null) {
+            if (mLoopListRunnable != null) {
+                mHandler.removeCallbacks(mLoopListRunnable);
+                mLoopListRunnable = null;
+            }
+            mHandler = null;
+        }
+        if (vList != null) {
+            vList.clear();
+            vList = null;
+        }
+        if (tList != null) {
+            tList.clear();
+            tList = null;
+        }
+        isLoop = false;
+    }
 }

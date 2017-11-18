@@ -78,12 +78,6 @@ public class StringConstant {
     // 待直播课程结束
     public static String  LIVE_STATU_OVER = "直播结束";
 
-    // 数据传递  轮播图 上
-    public final static String BANNER_LIST_UP = "BANNER_LIST_UP";
-
-    // 数据传递  轮播图 下
-    public final static String BANNER_LIST_DOWN = "BANNER_LIST_DOWN";
-
     public final static String PLAY_TYPE = "PLAY_TYPE";
 
     // 标识 点播
@@ -91,4 +85,25 @@ public class StringConstant {
 
     // 标识 直播
     public final static String LIVE_PLAY_TYPE = "LIVE_PLAY_TYPE";
+
+    // KEY nick
+    public final static String KEY_NICK = "nick";
+
+    // KEY userId
+    public final static String KEY_USER_ID = "userId";
+
+    // KEY avatar
+    public final static String KEY_AVATAR = "avatar";
+
+    // KEY sex
+    public final static String KEY_SEX = "sex";
+
+    // KEY openId
+    public final static String KEY_OPEN_ID = "openId";
+
+    // KEY heartRate
+    public final static String KEY_HEART_RATE = "heartRate";
+
+    // KEY rate
+    public final static String KEY_RATE = "rate";
 }

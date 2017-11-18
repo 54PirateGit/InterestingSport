@@ -13,4 +13,6 @@ import lombok.Data;
 public class UploadData implements Serializable {
 
     private List<MotionData> motionDataList;
+
+    private List<UserHeart> userHeartList;
 }
