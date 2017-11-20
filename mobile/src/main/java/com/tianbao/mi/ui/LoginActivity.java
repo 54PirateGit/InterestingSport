@@ -100,6 +100,12 @@ public class LoginActivity extends AppCompatActivity {
                         long refreshSort = data.getSortFrequency();
                         if (refreshSort > 0) SPUtils.put(mContext, StringConstant.SORT_FREQUENCY, refreshSort);// 用户数据排序时间
 
+                        int girth = data.getGirth();
+                        if (girth > 0) IntegerConstant.GIRTH = girth;// 动感单车周长
+
+                        float ratio = data.getRatio();
+                        if (ratio > 0) IntegerConstant.RATIO = ratio;// 踏频
+
                         // 将轮播图地址传递到待机页  如果有数据待机页就直接展示不需要重复获取
                         String adUrls = data.getStandbyUpAdUrl();
                         if (!TextUtils.isEmpty(adUrls)) {

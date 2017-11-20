@@ -23,6 +23,10 @@ public class LoginBean {
 
         private String deviceId;// 设备ID
 
+        private int girth;// 周长  cm
+
+        private float ratio;// 踏频
+
         private String id;
 
         private String password;// 密码
@@ -50,5 +54,7 @@ public class LoginBean {
         private String loadLeftAdUrl;
 
         private String loadRightAdUrl;
+
+        private int revise;// == 0 提示修改密码
     }
 }

@@ -188,6 +188,12 @@ public class SplashActivity extends Activity {
                             IntegerConstant.SORT_FREQUENCY = sf;// 用户数据排序刷新时间
                         }
 
+                        int girth = dBean.getGirth();
+                        if (girth > 0) IntegerConstant.GIRTH = girth;// 动感单车周长
+
+                        float ratio = dBean.getRatio();
+                        if (ratio > 0) IntegerConstant.RATIO = ratio;// 踏频
+
                         String urlString = dBean.getSplashAdUrl();// 启动页图片地址
                         if (!TextUtils.isEmpty(urlString)) {
                             initBanner(urlString);
@@ -195,9 +201,11 @@ public class SplashActivity extends Activity {
                             advertisement.setVisibility(View.GONE);
                         }
 
-                        L.i("refresh", "用户数据刷新时间：" + IntegerConstant.REFRESH_DATA_FREQUENCY);
-                        L.i("refresh", "用户关系刷新时间：" + IntegerConstant.REFRESH_RELATION__FREQUENCY);
-                        L.i("refresh", "界面排序刷新时间：" + IntegerConstant.SORT_FREQUENCY);
+                        L.i("SplashActivity", "用户数据刷新时间：" + IntegerConstant.REFRESH_DATA_FREQUENCY);
+                        L.i("SplashActivity", "用户关系刷新时间：" + IntegerConstant.REFRESH_RELATION__FREQUENCY);
+                        L.i("SplashActivity", "界面排序刷新时间：" + IntegerConstant.SORT_FREQUENCY);
+                        L.i("SplashActivity", "动感单车周长：" + IntegerConstant.GIRTH);
+                        L.i("SplashActivity", "踏频：" + IntegerConstant.RATIO);
 
                         // 待机页上面轮播图地址
                         String upUrls = dBean.getStandbyUpAdUrl();

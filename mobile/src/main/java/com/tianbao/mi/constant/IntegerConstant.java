@@ -31,6 +31,12 @@ public class IntegerConstant {
     // storeId
     public static int STORE_ID = -1;
 
+    // 动感单车周长
+    public static int GIRTH = 0;
+
+    // 踏频
+    public static float RATIO = 0;
+
     // 排序刷新界面频率
     public static long SORT_FREQUENCY = 2 * 60 * 1000L;// 默认
 

@@ -106,4 +106,13 @@ public class StringConstant {
 
     // KEY rate
     public final static String KEY_RATE = "rate";
+
+    // KEY birthday
+    public final static String KEY_BIRTHDAY = "birthday";
+
+    // KEY weight
+    public final static String KEY_WEIGHT = "weight";
+
+    // KEY height
+    public final static String KEY_HEIGHT = "height";
 }

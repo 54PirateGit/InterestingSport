@@ -267,6 +267,10 @@ public class StandbyActivity extends Activity {
         if (count1 < IntegerConstant.RESTART_REQUEST_COUNT) {
             requestLiveList();
             count1++;
+        } else {
+            isSelectTab = true;
+            textLive.setBackground(getResources().getDrawable(R.drawable.tab_white_background));
+            textDemand.setBackground(null);
         }
     };
 
