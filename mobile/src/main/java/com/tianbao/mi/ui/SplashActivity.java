@@ -16,7 +16,7 @@ import com.tianbao.mi.R;
 import com.tianbao.mi.app.MyApp;
 import com.tianbao.mi.bean.CourseInfoBean;
 import com.tianbao.mi.bean.LoginBean;
-import com.tianbao.mi.bean.MotionData;
+import com.tianbao.mi.bean.GymData;
 import com.tianbao.mi.bean.UploadData;
 import com.tianbao.mi.bean.UploadDataBean;
 import com.tianbao.mi.bean.UserHeart;
@@ -189,10 +189,10 @@ public class SplashActivity extends Activity {
                         }
 
                         int girth = dBean.getGirth();
-                        if (girth > 0) IntegerConstant.GIRTH = girth;// 动感单车周长
+                        if (girth > 0) IntegerConstant.GIRTH = (float) girth / 100;// 动感单车周长
 
-                        float ratio = dBean.getRatio();
-                        if (ratio > 0) IntegerConstant.RATIO = ratio;// 踏频
+                        int ratio = dBean.getRatio();
+                        if (ratio > 0) IntegerConstant.RATIO = (float) ratio / 100;// 踏频比例
 
                         String urlString = dBean.getSplashAdUrl();// 启动页图片地址
                         if (!TextUtils.isEmpty(urlString)) {
@@ -297,8 +297,8 @@ public class SplashActivity extends Activity {
     // 上传用户数据
     private void uploadData() {
         UploadData uploadData = new UploadData();
-        List<MotionData> mDataList = new ArrayList<>();
-        MotionData mData = new MotionData();
+        List<GymData> mDataList = new ArrayList<>();
+        GymData mData = new GymData();
         mData.setCourseId(99);
         mData.setAverageHeartRate(100);// 平均心率
         mData.setCalorie(98.9f);
@@ -309,7 +309,7 @@ public class SplashActivity extends Activity {
         mData.setUserId(47);
         mDataList.add(mData);
 
-        mData = new MotionData();
+        mData = new GymData();
         mData.setCourseId(99);
         mData.setAverageVelocity(34);
         mData.setCalorie(37.9f);
@@ -320,15 +320,16 @@ public class SplashActivity extends Activity {
         mData.setUserId(47);
         mDataList.add(mData);
 
-        uploadData.setMotionDataList(mDataList);
+        uploadData.setGymDataList(mDataList);
 
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(Api.BASE_URL)
+//                .baseUrl("http://192.168.2.58:8080")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
         ApiService service = retrofit.create(ApiService.class);
-        Call<UploadDataBean> model = service.saveMotionData(uploadData);
+        Call<UploadDataBean> model = service.saveGymData(uploadData);
 
         L.i("uploadData", "uploadData -> " + uploadData.toString());
 
@@ -351,7 +352,7 @@ public class SplashActivity extends Activity {
         });
     }
 
-    // 上传用户数据
+    // 上传用户数据  获取用户安静时心率
     private void uploadUser() {
         UploadData uploadData = new UploadData();
         List<UserHeart> mDataList = new ArrayList<>();

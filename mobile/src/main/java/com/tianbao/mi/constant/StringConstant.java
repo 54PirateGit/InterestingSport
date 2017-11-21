@@ -45,11 +45,14 @@ public class StringConstant {
     // 课程结束消息
     public final static String END_COURSE = "end_live";
 
-    // 发生广播  用户数据有新的绑定关系
+    // 发送广播  用户数据有新的绑定关系
     public final static String BROAD_BUILD_UPDATE = "BROAD_BUILD_UPDATE";
 
     // 数据传递  用户数据有新的绑定关系
     public final static String BUILD_UPDATE_KEY = "BUILD_UPDATE_KEY";
+
+    // 数据传递  需要上传的数据
+    public final static String UPLOAD_DATA_KEY = "UPLOAD_DATA_KEY";
 
     // 排序刷新界面频率
     public final static String SORT_FREQUENCY = "SORT_FREQUENCY";
@@ -104,9 +107,6 @@ public class StringConstant {
     // KEY heartRate
     public final static String KEY_HEART_RATE = "heartRate";
 
-    // KEY rate
-    public final static String KEY_RATE = "rate";
-
     // KEY birthday
     public final static String KEY_BIRTHDAY = "birthday";
 
@@ -115,4 +115,13 @@ public class StringConstant {
 
     // KEY height
     public final static String KEY_HEIGHT = "height";
+
+    // KEY cadence
+    public final static String KEY_CADENCE = "cadence";
+
+    // KEY interval4Cadence
+    public final static String KEY_INTERVAL_CADENCE = "interval4Cadence";
+
+    // KEY restingHeart
+    public final static String KEY_RESTING_HEART = "restingHeart";
 }

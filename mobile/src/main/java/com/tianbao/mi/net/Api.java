@@ -10,7 +10,7 @@ public class Api {
 //    public final static String BASE_URL_PI = "http://192.168.31.58:8088";
 
     // 树莓派地址
-    public final static String BASE_URL_PI = "http://192.168.1.109:8088";
+    public final static String BASE_URL_PI = "http://192.168.2.58:8088";
 
     // 云服务器地址
     public final static String BASE_URL = "http://yin.nat200.top";
@@ -37,7 +37,7 @@ public class Api {
     public final static String CHANGE_COURSE_LIVE = "/api/pi/changeCourseLive";
 
     // 上传用户运动数据
-    public final static String SAVE_MOTION_DATA = "/api/pi/saveMotionData";
+    public final static String SAVE_GYM_DATA = "/api/pi/saveGymData";
 
     // 解除绑定 用户与单车的关系
     public final static String USER_UNBINDING = "/api/pi/unbinding";

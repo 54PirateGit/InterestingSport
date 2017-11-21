@@ -64,4 +64,5 @@ dependencies {
     compile 'pl.droidsonroids.gif:android-gif-drawable:1.2.1'
     testCompile 'junit:junit:4.12'
     apt 'com.jakewharton:butterknife-compiler:8.4.0'
+    compile files('libs/joda-time-2.5.jar')
 }

@@ -19,9 +19,13 @@ import com.tianbao.mi.app.MyApp;
 import com.tianbao.mi.bean.BuildBean;
 import com.tianbao.mi.bean.CourseInfoBean;
 import com.tianbao.mi.bean.CurrencyBean;
+import com.tianbao.mi.bean.FitUser;
+import com.tianbao.mi.bean.GymData;
 import com.tianbao.mi.bean.InformationBean;
 import com.tianbao.mi.bean.RecordBean;
-import com.tianbao.mi.bean.UserDataBean;
+import com.tianbao.mi.bean.UploadData;
+import com.tianbao.mi.bean.UploadDataBean;
+import com.tianbao.mi.bean.UserHeart;
 import com.tianbao.mi.constant.IntegerConstant;
 import com.tianbao.mi.constant.StringConstant;
 import com.tianbao.mi.net.Api;
@@ -35,6 +39,8 @@ import com.tianbao.mi.widget.AutoScrollListView;
 import com.tianbao.mi.widget.AutoTypesettingLayout;
 import com.tianbao.mi.widget.MemberView;
 import com.tianbao.mi.widget.bdplayer.BDCloudVideoView;
+
+import org.joda.time.LocalDateTime;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -83,9 +89,11 @@ public class MainActivity extends AppCompatActivity {
     private Handler mHandler = new Handler();// 处理线程
 
     private List<InformationBean> iList = new ArrayList<>();
-    private List<UserDataBean> mList;// 保存用户数据
+    //    private List<UserDataBean> mList;// 保存用户数据
+    private List<FitUser> mList;// 保存用户数据
     private List<MemberView> vList = new ArrayList<>();// 保存 View
     private List<String> dKey = new ArrayList<>();// key
+    private List<UserHeart> mDataList = new ArrayList<>();
 
     private boolean isFront = true;// 标记此时在前在后
     private String playType;// 标识  点播 or 直播
@@ -105,12 +113,7 @@ public class MainActivity extends AppCompatActivity {
         mVV = (BDCloudVideoView) findViewById(R.id.bd_player);
         mVV.setVideoPath(StringConstant.LIVE_URL);
         mVV.setVideoScalingMode(BDCloudVideoView.VIDEO_SCALING_MODE_SCALE_TO_FIT);
-        mVV.setOnCompletionListener(iMediaPlayer -> {
-            mHandler.postDelayed(() -> {
-                startActivity(new Intent(mContext, CourseEndActivity.class));// 跳转到课程结束界面
-                finish();
-            }, IntegerConstant.INTO_COURSE_END);
-        });
+        mVV.setOnCompletionListener(iMediaPlayer -> mHandler.postDelayed(() -> courseEnd(), IntegerConstant.INTO_COURSE_END));
         mVV.start();
     }
 
@@ -135,11 +138,11 @@ public class MainActivity extends AppCompatActivity {
 
         setKey();// 所有 key
 
-        initPlayer();// 初始化播放器
+//        initPlayer();// 初始化播放器
         initView();
 
         Intent intent = getIntent();
-        if (intent == null) return ;
+        if (intent == null) return;
         playType = intent.getStringExtra(StringConstant.PLAY_TYPE);
 
         if (playType.equals(StringConstant.DEMAND_PLAY_TYPE)) {
@@ -222,10 +225,7 @@ public class MainActivity extends AppCompatActivity {
             if (action.equals(StringConstant.BROAD_BUILD_UPDATE)) {// 有新的用户绑定关系需要处理
                 requestUserInfo();
             } else if (action.equals(StringConstant.BROAD_END_COURSE)) {// 课程结束
-                SoundPlayUtils.play(IntegerConstant.SOUND_COURSE_END);
-
-                startActivity(new Intent(mContext, CourseEndActivity.class));// 跳转到课程结束界面
-                finish();
+                courseEnd();
             }
         }
     };
@@ -272,7 +272,7 @@ public class MainActivity extends AppCompatActivity {
         for (String key : tList) {
             if (!dKey.contains(key)) {// 有新的数据
                 dKey.add(key);
-                UserDataBean bean = new UserDataBean();
+                FitUser bean = FitUser.build();
                 bean.setKey(key);// 将 key 先加入  key 是识别用户数据与用户绑定关系的唯一标识
                 bean.setSort(0);
                 if (mList == null) mList = new ArrayList<>();
@@ -282,51 +282,32 @@ public class MainActivity extends AppCompatActivity {
         for (String key : dKey) {
             for (int i = 0; i < mList.size(); i++) {
                 if (key.equals(mList.get(i).getKey())) {
-                    UserDataBean bean = mList.get(i);
-
+                    FitUser bean = mList.get(i);
                     Map<String, String> dData = dMap.get(key);
-                    if (dData == null) dData = new HashMap<>();
-
-                    bean.setHeartRate(dData.get(StringConstant.KEY_HEART_RATE));
-                    String rate = dData.get(StringConstant.KEY_RATE);
-                    if (TextUtils.isEmpty(rate) || rate.equals("0") || rate.equals("--")) {// 获取空的数据
-                        String oldRate = mList.get(i).getRate();// 取出上一次的数据
-                        if (oldRate != null) {
-                            if (!TextUtils.isEmpty(oldRate) && !oldRate.equals("0") && !rate.equals("--")) {// 上一次的数据不为空
-                                bean.setRate(rate);
-                                bean.setLastTime(System.currentTimeMillis());// 将空的数据填入并记录当前时间
-                            } else {// 上一次的数据就已经为空 说明已经记录了第一次为空时的时间 这里就需要判断数据为空时长是否大于 5 分钟
-                                long lastTime = bean.getLastTime();// 取出记录为空时的时间
-                                if (lastTime != 0) {// 不为 0
-                                    long time = System.currentTimeMillis();// 获取当前时间  用于比较
-                                    if (time - lastTime >= IntegerConstant.DATA_NEUTRAL_GEAR_TIME) {// 数据空档期已经超过 5 分钟
-
-                                        L.i("TimeDifference", "TimeDifference -> " + (time - lastTime));
-
-                                        String openId = bean.getOpenId();
-                                        String headId = bean.getKey();
-                                        requestUnbinding(openId, headId);// 将此信息发送到后台
-                                    }
-                                } else {// 记录的时间为 0 说明是第一次没有数据的记录
-                                    bean.setRate(rate);
-                                    bean.setLastTime(System.currentTimeMillis());
-                                }
-                            }
-                        }
-                    } else {
-                        bean.setRate(rate);
-                    }
-
                     Map<String, String> rData = rMap.get(key);
-                    if (rData == null) rData = new HashMap<>();
+                    LocalDateTime now = new LocalDateTime();
+                    bean = setFitUserData(bean, dData, rData, now);
+                    bean.getFitInfo().cal4Cycle(IntegerConstant.GIRTH, bean, now);
 
-                    bean.setAvatar(rData.get(StringConstant.KEY_AVATAR));
-                    bean.setNick(rData.get(StringConstant.KEY_NICK));
-                    bean.setSex(rData.get(StringConstant.KEY_SEX));
-                    bean.setOpenId(rData.get(StringConstant.KEY_OPEN_ID));
-                    bean.setUserId(rData.get(StringConstant.KEY_OPEN_ID));
+                    if (bean.isNotOnline()) {// 已经掉线
+                        String openId = bean.getOpenId();
+                        String headId = bean.getKey();
+                        requestUnbinding(openId, headId);// 将此信息发送到后台
+                    }
                     break;
                 }
+            }
+        }
+
+        if (mDataList != null && mDataList.size() > 0) {
+            for (int i=0; i<mDataList.size(); i++) {
+                if (mDataList.get(i).getHeart() == 0) {
+                    mDataList.remove(i);
+                }
+            }
+
+            if (mDataList.size() > 0) {
+                requestUploadUser();
             }
         }
 
@@ -339,8 +320,8 @@ public class MainActivity extends AppCompatActivity {
 
         // 然后重新添加  因为刷新界面的方法不是很管用 所以只能这样手动刷新界面
         MemberView childView;
-        UserDataBean dataBean;
-        if (mList == null || mList.size() <= 0) return ;
+        FitUser dataBean;
+        if (mList == null || mList.size() <= 0) return;
         for (int i = 0; i < mList.size(); i++) {
             childView = new MemberView(mContext);
             dataBean = mList.get(i);
@@ -360,11 +341,10 @@ public class MainActivity extends AppCompatActivity {
         }
         updateView();// 加载
 
-        for (int i=0; i<mList.size(); i++) {
-            UserDataBean bean = mList.get(i);
-            String hr = bean.getHeartRate();
-            if (TextUtils.isEmpty(hr) || hr.equals("NULL") || hr.equals("null") || hr.equals("--")) return ;
-            if (Integer.valueOf(hr) >= 180) {
+        for (int i = 0; i < mList.size(); i++) {
+            FitUser bean = mList.get(i);
+            int level = bean.getHearRateLevel();
+            if (level == 5) {// 心率范围在 5 档的位置需要提示用户
                 String name = bean.getNick();
 
                 InformationBean iBean = new InformationBean();
@@ -385,12 +365,12 @@ public class MainActivity extends AppCompatActivity {
 
     // 排序  根据消耗卡路里由大到小
     private void sortData() {
-        if (mList == null || mList.size() <= 3) return ;
-        if (vList == null || vList.size() <= 3) return ;
-        List<UserDataBean> tempList = new ArrayList<>();
+        if (mList == null || mList.size() <= 3) return;
+        if (vList == null || vList.size() <= 3) return;
+        List<FitUser> tempList = new ArrayList<>();
         for (int i = 0; i < mList.size(); i++) tempList.add(mList.get(i));
         List<String> resultList = sortResult(tempList);
-        if (resultList == null || resultList.size() < 3) return ;
+        if (resultList == null || resultList.size() < 3) return;
 
         InformationBean iBean = new InformationBean();
         iBean.setType(IntegerConstant.VIEW_TYPE_SORT);
@@ -398,7 +378,7 @@ public class MainActivity extends AppCompatActivity {
 
         InformationBean.SortBean sortBean;
 
-        for (int i=0; i<mList.size(); i++) {
+        for (int i = 0; i < mList.size(); i++) {
             String key = mList.get(i).getKey();
             if (key.equals(resultList.get(0))) {
                 mList.get(i).setSort(1);
@@ -443,17 +423,17 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // 排序  大 - > 小
-    private List<String> sortResult(List<UserDataBean> list) {
+    private List<String> sortResult(List<FitUser> list) {
         if (list == null || list.size() <= 0) return null;
         if (list.size() <= 3) return null;
-        UserDataBean[] arr = new UserDataBean[list.size()];
+        FitUser[] arr = new FitUser[list.size()];
         for (int i = 0; i < list.size(); i++) arr[i] = list.get(i);
-        List<UserDataBean> result = new ArrayList<>();
+        List<FitUser> result = new ArrayList<>();
         for (int x = 0; x < arr.length; x++) {
-            UserDataBean a = arr[x];
+            FitUser a = arr[x];
             for (int y = x + 1; y < arr.length; y++) {
-                UserDataBean b = arr[y];
-                if ((float) a.getCalorie() >= (float) b.getCalorie()) continue;
+                FitUser b = arr[y];
+                if (a.getKcal() >= b.getKcal()) continue;
                 else {
                     arr[x] = b;
                     arr[y] = a;
@@ -486,7 +466,7 @@ public class MainActivity extends AppCompatActivity {
 
     // 没有获取到数据或获取数据失败时重复获取数据
     private int count = 0;
-    private Runnable reStartRequestRunnable =() -> {
+    private Runnable reStartRequestRunnable = () -> {
         if (count < IntegerConstant.RESTART_REQUEST_COUNT) {
             requestUserInfo();
             count++;
@@ -510,13 +490,25 @@ public class MainActivity extends AppCompatActivity {
                 BuildBean buildBean = response.body();
                 int code = buildBean.getCode();
                 if (IntegerConstant.RESULT_OK == code) {
-                    if (mHandler!= null && reStartRequestRunnable != null) {
+                    if (mHandler != null && reStartRequestRunnable != null) {
                         mHandler.removeCallbacks(reStartRequestRunnable);
                     }
                     rMap = buildBean.getData();
                     List<String> tempList = new ArrayList<>();
                     for (Map.Entry<String, Map<String, String>> entry : rMap.entrySet()) {
                         tempList.add(entry.getKey());
+
+                        Map<String, String> map = entry.getValue();
+                        String restingHeart = map.get(StringConstant.KEY_RESTING_HEART);
+                        if (TextUtils.isEmpty(restingHeart) || restingHeart.equals("NaN")
+                                || restingHeart.equals("0") || restingHeart.equals("null") || restingHeart.equals("NULL")) {
+                            UserHeart userHeart = new UserHeart();
+                            String userId = map.get(StringConstant.KEY_USER_ID);
+                            if (!TextUtils.isEmpty(userId)) {
+                                userHeart.setUserId(Integer.valueOf(userId));
+                                mDataList.add(userHeart);
+                            }
+                        }
                     }
                     assemblyData(tempList);
                 } else {
@@ -553,7 +545,7 @@ public class MainActivity extends AppCompatActivity {
                 CourseInfoBean courseInfo = response.body();
                 if (courseInfo == null) {
                     mHandler.postDelayed(mLoopRequestRunnable, IntegerConstant.GET_LIVE_COURSE_STATUS);
-                    return ;
+                    return;
                 }
 
                 int code = courseInfo.getCode();
@@ -564,10 +556,7 @@ public class MainActivity extends AppCompatActivity {
                     } else {
                         String status = course.getLiveStatus();
                         if (status.equals(StringConstant.LIVE_STATU_OVER)) {
-                            SoundPlayUtils.play(IntegerConstant.SOUND_COURSE_END);
-
-                            startActivity(new Intent(mContext, CourseEndActivity.class));// 跳转到课程结束界面
-                            finish();
+                            courseEnd();
                         } else {
                             mHandler.postDelayed(mLoopRequestRunnable, IntegerConstant.GET_LIVE_COURSE_STATUS);
                         }
@@ -603,7 +592,7 @@ public class MainActivity extends AppCompatActivity {
             public void onResponse(Response<CurrencyBean> response, Retrofit retrofit) {
                 if (isCancelRequest) return;
                 CurrencyBean bean = response.body();
-                if (bean == null) return ;
+                if (bean == null) return;
                 int code = bean.getCode();
                 if (code == IntegerConstant.RESULT_OK) {
                     L.d("requestUnbinding success");
@@ -616,8 +605,112 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    // 课程结束
+    private void courseEnd() {
+        SoundPlayUtils.play(IntegerConstant.SOUND_COURSE_END);
+
+        UploadData uploadData = new UploadData();
+        List<GymData> data = uploadData();
+        uploadData.setGymDataList(data);
+
+        Intent intent = new Intent(mContext, CourseEndActivity.class);
+        intent.putExtra(StringConstant.UPLOAD_DATA_KEY, uploadData);
+        startActivity(intent);// 跳转到课程结束界面
+        finish();
+    }
+
+    // 上传用户心率
+    private void requestUploadUser() {
+        UploadData uploadData = new UploadData();
+        uploadData.setUserHeartList(mDataList);
+
+        Retrofit retrofit = new Retrofit.Builder()
+//                .baseUrl("http://192.168.1.111:8080")
+                .baseUrl(Api.BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        ApiService service = retrofit.create(ApiService.class);
+        Call<UploadDataBean> model = service.addHeart(uploadData);
+
+        L.i("uploadData", "uploadData -> " + uploadData.toString());
+
+        model.enqueue(new Callback<UploadDataBean>() {
+            @Override
+            public void onResponse(Response<UploadDataBean> response, Retrofit retrofit) {
+                UploadDataBean bean = response.body();
+                int code = bean.getCode();
+                if (code == IntegerConstant.RESULT_OK) {
+                    T.showShort(mContext, "数据上传成功");
+
+                    mDataList.clear();
+
+                } else {
+                    T.showShort(mContext, "数据上传失败");
+                }
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                T.connectFailTip(mContext);
+            }
+        });
+    }
+
+
+    // 需要上传的用户数据
+    private List<GymData> uploadData() {
+        if (mList == null || mList.size() <= 0) return null;
+        LocalDateTime now = new LocalDateTime();
+        List<GymData> gList = new ArrayList<>();
+
+        GymData gData;
+        for (FitUser user : mList) {
+            gData = new GymData();
+
+            gData.setCourseId(MyApp.getCourseId());
+            gData.setAverageHeartRate(user.getAverageHeartRate(now));// 平均心率
+
+            String calorie = user.getKcalStr();
+            if (TextUtils.isEmpty(calorie) || calorie.equals("--") || calorie.equals("NaN")) {
+                calorie = "0";
+            }
+            gData.setCalorie(Float.valueOf(calorie));
+            gData.setStatus(1);
+            gData.setMaximumHeartRate(200);// 最大心率 待修改
+            gData.setExerciseDuration(user.getDuration(now));
+
+            String mileage = user.getDistanceStr();
+            if (TextUtils.isEmpty(mileage) || mileage.equals("--") || mileage.equals("NaN")) {
+                mileage = "0";
+            }
+            gData.setMileage(Float.valueOf(mileage));
+            gData.setUserId(user.getUserId());
+            gData.setTopSpeed(user.getPACE());
+            gData.setAverageVelocity(30);// 平均速度  待修改
+
+            gData.setMaximum((int)user.getHrLevel5duration());
+            gData.setAccumulation((int)user.getHrLevel4duration());
+            gData.setConsume((int)user.getHrLevel3duration());
+            gData.setBurning((int)user.getHrLevel2duration());
+            gData.setRelax((int)user.getHrLevel1duration());
+
+            gData.setMaximumPct(user.getHrLevelRate(5, now));
+            gData.setAccumulationPct(user.getHrLevelRate(4, now));
+            gData.setConsumePct(user.getHrLevelRate(3, now));
+            gData.setBurningPct(user.getHrLevelRate(2, now));
+            gData.setRelaxPct(user.getHrLevelRate(1, now));
+
+            gData.setType(IntegerConstant.DYNAMIC_SYSTEM_TYPE);
+
+            gList.add(gData);
+        }
+
+        return gList;
+    }
+
     // 获取课程直播状态 用于没有接收到课程结束推送消息时自行结束课程
-    private Runnable mLoopRequestRunnable = ()-> requestCourseStatus();
+    private Runnable mLoopRequestRunnable = () -> requestCourseStatus();
 
     // 更新界面排版
     private void updateView() {
@@ -630,6 +723,56 @@ public class MainActivity extends AppCompatActivity {
         viewRightFront.setAlpha(isFront);
         viewLeftBack.setAlpha(!isFront);
         viewRightBack.setAlpha(!isFront);
+    }
+
+    // 设置用户数据
+    private FitUser setFitUserData(FitUser user, Map<String, String> data1, Map<String, String> data2, LocalDateTime now) {
+        if (data1 == null) data1 = new HashMap<>();
+        if (data2 == null) data2 = new HashMap<>();
+        if (user == null) user = FitUser.build();
+
+        String openId = data2.get(StringConstant.KEY_OPEN_ID);// openId
+        String userId = data2.get(StringConstant.KEY_USER_ID);// 用户 id
+        String avatar = data2.get(StringConstant.KEY_AVATAR);//头像
+        String nick = data2.get(StringConstant.KEY_NICK);// 昵称
+        String sex = data2.get(StringConstant.KEY_SEX);// 性别
+        String birthday = data2.get(StringConstant.KEY_BIRTHDAY);// 生日 用于计算当前年龄
+        String weight = data2.get(StringConstant.KEY_WEIGHT);// 体重
+        String height = data2.get(StringConstant.KEY_HEIGHT);// 身高
+        String restingHeart = data2.get(StringConstant.KEY_RESTING_HEART);// 安静时心率
+
+        String heartRate = data1.get(StringConstant.KEY_HEART_RATE);// 心率
+        String cadence = data1.get(StringConstant.KEY_CADENCE);// 踏频
+        String interval4Cadence = data1.get(StringConstant.KEY_INTERVAL_CADENCE);// 踏频间隔时间
+
+        if (!TextUtils.isEmpty(userId) || !userId.equals("NaN") || userId.equals("null")) {
+            if (mDataList != null && mDataList.size() > 0) {
+                for (int i=0; i<mDataList.size(); i++) {
+                    UserHeart userHeart = mDataList.get(i);
+                    if (userHeart.getUserId() == Integer.valueOf(userId)) {
+                        if (TextUtils.isEmpty(heartRate) || heartRate.equals("NaN")) {
+                            heartRate = "0";
+                        }
+                        userHeart.setHeart(Integer.valueOf(heartRate));
+                        break;
+                    }
+                }
+            }
+        }
+
+        user.setOpenId(openId)
+                .setUserId(userId)
+                .setAvatar(avatar)
+                .setNick(nick)
+                .setSex(sex)
+                .setHeartRate(heartRate)
+                .setAge(birthday, now)
+                .setWeight(weight)
+                .setHeight(height)
+                .setHRrest(restingHeart)
+                .setCadence(cadence)
+                .setInterval4Cadence(interval4Cadence);
+        return user;
     }
 
     private long time;// 保存点击返回键的时间
@@ -686,6 +829,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (reStartRequestRunnable != null) {
             mHandler.removeCallbacks(reStartRequestRunnable);
+            reStartRequestRunnable = null;
         }
 
         if (mList != null) {

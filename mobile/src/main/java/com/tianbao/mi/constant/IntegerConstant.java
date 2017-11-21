@@ -32,9 +32,9 @@ public class IntegerConstant {
     public static int STORE_ID = -1;
 
     // 动感单车周长
-    public static int GIRTH = 0;
+    public static float GIRTH = 0;
 
-    // 踏频
+    // 踏频比例
     public static float RATIO = 0;
 
     // 排序刷新界面频率
@@ -92,19 +92,19 @@ public class IntegerConstant {
 //    public final static int MIN_HEAR_RATE = 60;
 
     // 放松热身
-    public final static int RELAX_HEAR_RATE = 100;
+    public final static int RELAX_HEAR_RATE = 1;
 
     // 燃烧脂肪
-    public final static int BURNING_HEAR_RATE = 144;
+    public final static int BURNING_HEAR_RATE = 2;
 
     // 糖原消耗
-    public final static int CONSUME_HEAR_RATE = 170;
+    public final static int CONSUME_HEAR_RATE = 3;
 
     // 乳酸堆积
-    public final static int ACCUMULATION_HEAR_RATE = 195;
+    public final static int ACCUMULATION_HEAR_RATE = 4;
 
-    // 高强度运动时最大心率值
-//    public final static int MAX_HEAR_RATE = 195;
+    // 身体极限
+    public final static int MAX_HEAR_RATE = 5;
 
     // 有新的瘾伙伴加入
     public final static int SOUND_PARTNER_JOIN = 1;

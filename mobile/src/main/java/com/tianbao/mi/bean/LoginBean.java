@@ -25,7 +25,7 @@ public class LoginBean {
 
         private int girth;// 周长  cm
 
-        private float ratio;// 踏频
+        private int ratio;// 踏板与车轮的比例
 
         private String id;
 

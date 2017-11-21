@@ -9,10 +9,7 @@ import lombok.Data;
  * Created by edianzu on 2017/11/10.
  */
 @Data
-public class MotionData implements Serializable {
-
-    // ID
-    private int id;
+public class GymData implements Serializable {
 
     /**
      * 用户 id
@@ -63,4 +60,32 @@ public class MotionData implements Serializable {
      * 平均心率
      */
     private int averageHeartRate;
+
+    private int maximum;
+
+    private int accumulation;
+
+    private int consume;
+
+    private int burning;
+
+    private int relax;
+
+    private int maximumPct;
+
+    private int accumulationPct;
+
+    private int consumePct;
+
+    private int burningPct;
+
+    private int relaxPct;
+
+    /**
+     * 课程类型。
+     1：单车
+     2：跑步机
+     3：团操
+     */
+    private int type;
 }

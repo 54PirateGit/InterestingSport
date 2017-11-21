@@ -10,10 +10,8 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 import com.tianbao.mi.R;
-import com.tianbao.mi.bean.UserDataBean;
+import com.tianbao.mi.bean.FitUser;
 import com.tianbao.mi.constant.IntegerConstant;
-
-import java.util.Random;
 
 /**
  * 显示成员
@@ -29,6 +27,7 @@ public class MemberView extends LinearLayout {
     private ImageView imageSort;// 排名
     private TextView textSort;// 排名
     private View viewBack;// 背景
+    private TextView textLevel;// 级别
 
     private TextView textHeartRateUnit;// 心率单位
 
@@ -52,11 +51,12 @@ public class MemberView extends LinearLayout {
         imageSort = findViewById(R.id.image_sort);
         textSort = findViewById(R.id.text_sort);
         viewBack = findViewById(R.id.view_background);
+        textLevel = findViewById(R.id.text_level);
 
         textHeartRateUnit = findViewById(R.id.text_heart_rate_unit);
     }
 
-    public void setData(UserDataBean data) {
+    public void setData(FitUser data) {
         String key1 = data.getKey();
         if (!TextUtils.isEmpty(key1)) {
             textKey.setText(key1);
@@ -71,17 +71,18 @@ public class MemberView extends LinearLayout {
         }
 
         // 数据
-        String speed = data.getRate();
-        if (TextUtils.isEmpty(speed)) speed = "--";
+        String speed = data.getSpeed();
+        if (TextUtils.isEmpty(speed) || speed.equals("NaN")) speed = "--";
 
-        int h = new Random().nextInt(220);
-//        String heart = data.getHeartRate();
-        String heart = String.valueOf(h);
-        if (TextUtils.isEmpty(heart)) heart = "--";
+//        int h = new Random().nextInt(220);
+        String heart = String.valueOf(data.getHeartRate());
+//        String heart = String.valueOf(h);
+        if (TextUtils.isEmpty(heart) || heart.equals("NaN")) heart = "--";
 
-        int c = new Random().nextInt(100);
-        String calorie = String.valueOf(c);
-        if (TextUtils.isEmpty(calorie)) calorie = "--";
+//        int c = new Random().nextInt(100);
+        String calorie = data.getKcalStr();
+//        String calorie = String.valueOf(c);
+        if (TextUtils.isEmpty(calorie) || calorie.equals("NaN")) calorie = "--";
 
         // 速度
         textSpeed.setText(speed);
@@ -99,8 +100,13 @@ public class MemberView extends LinearLayout {
         // 卡路里
         textCalorie.setText(calorie);
 
+        // 排序
         int sort = data.getSort();
         textSort.setText(String.valueOf(sort));
+
+        // 级别
+        int level = data.getHearRateLevel();
+        textLevel.setText(String.valueOf(level));
         invalidate();
     }
 
@@ -126,23 +132,23 @@ public class MemberView extends LinearLayout {
 
     // 根据心率在不同的范围内给 View 设置不同的背景色  不同的背景色代表着不同的提示信息
     public void updateView() {
-        String hearRate = textHeartRate.getText().toString();
-        if (!TextUtils.isEmpty(hearRate) && !hearRate.equals("--")) {
-            int hear = Integer.valueOf(hearRate);
-            if (hear < IntegerConstant.RELAX_HEAR_RATE) {// 放松热身
-                viewBack.setBackground(getResources().getDrawable(R.drawable.card_background));
-
-            } else if (hear >= IntegerConstant.RELAX_HEAR_RATE && hear < IntegerConstant.BURNING_HEAR_RATE) {// 燃烧脂肪
+        String level = textLevel.getText().toString();
+        if (!TextUtils.isEmpty(level) && !level.equals("--")) {
+            int l = Integer.valueOf(level);
+            if (l == IntegerConstant.RELAX_HEAR_RATE) {// 放松热身
                 viewBack.setBackground(getResources().getDrawable(R.drawable.card_relax_background));
 
-            } else if (hear >= IntegerConstant.BURNING_HEAR_RATE && hear < IntegerConstant.CONSUME_HEAR_RATE) {// 糖原消耗
+            } else if (l == IntegerConstant.BURNING_HEAR_RATE) {// 燃烧脂肪
                 viewBack.setBackground(getResources().getDrawable(R.drawable.card_burning_background));
 
-            } else if (hear >= IntegerConstant.CONSUME_HEAR_RATE && hear < IntegerConstant.ACCUMULATION_HEAR_RATE) {// 乳酸堆积
+            } else if (l == IntegerConstant.CONSUME_HEAR_RATE) {// 糖原消耗
                 viewBack.setBackground(getResources().getDrawable(R.drawable.card_consume_background));
 
-            } else if (hear >= IntegerConstant.ACCUMULATION_HEAR_RATE) {// 身体极限
+            } else if (l == IntegerConstant.ACCUMULATION_HEAR_RATE) {// 乳酸堆积
                 viewBack.setBackground(getResources().getDrawable(R.drawable.card_accumulation_background));
+
+            } else if (l == IntegerConstant.MAX_HEAR_RATE) {// 身体极限
+                viewBack.setBackground(getResources().getDrawable(R.drawable.card_limit_background));
 
             } else {// 意外情况  一般只在刚开始时出现 在有运动数据之后不会出现
                 viewBack.setBackground(getResources().getDrawable(R.drawable.card_background));

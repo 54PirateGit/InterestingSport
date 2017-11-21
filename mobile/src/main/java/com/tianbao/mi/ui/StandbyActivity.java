@@ -229,9 +229,9 @@ public class StandbyActivity extends Activity {
 
         // 生成二维码
         downList = MyApp.getDownUrl();
-        viewQr.setAlpha(0.8f);
+        viewQr.setAlpha(0.65f);
         if (downList != null && downList.size() > 0) {
-            Bitmap qrBitmap = QrUtil.generateBitmap(downList.get(0), 270, 270);
+            Bitmap qrBitmap = QrUtil.generateBitmap(downList.get(0), 300, 300);
             if (qrBitmap != null) {
                 imageQr.setVisibility(View.VISIBLE);
                 imageQr.setImageBitmap(qrBitmap);

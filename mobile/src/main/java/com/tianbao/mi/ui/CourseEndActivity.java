@@ -9,19 +9,30 @@ import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.KeyEvent;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.tianbao.mi.R;
 import com.tianbao.mi.app.MyApp;
+import com.tianbao.mi.bean.UploadData;
+import com.tianbao.mi.bean.UploadDataBean;
 import com.tianbao.mi.constant.IntegerConstant;
 import com.tianbao.mi.constant.StringConstant;
+import com.tianbao.mi.net.Api;
+import com.tianbao.mi.net.ApiService;
 import com.tianbao.mi.utils.BitmapUtils;
+import com.tianbao.mi.utils.L;
 import com.tianbao.mi.utils.SPUtils;
 import com.tianbao.mi.utils.T;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import retrofit.Call;
+import retrofit.Callback;
+import retrofit.GsonConverterFactory;
+import retrofit.Response;
+import retrofit.Retrofit;
 
 /**
  * 课程结束跳转至此
@@ -37,6 +48,10 @@ public class CourseEndActivity extends Activity {
     TextView textYear;
     @BindView(R.id.text_time)
     TextView textTime;
+    @BindView(R.id.view_save)
+    View viewSave;// 数据正在保存
+    @BindView(R.id.view_qr)
+    View viewQr;// 数据保存成功展示数据分享二维码
 
     private Context mContext;
     private Handler mHandler = new Handler();
@@ -84,11 +99,58 @@ public class CourseEndActivity extends Activity {
         textYear.setText(string);
 
         mHandler.postDelayed(mCountDownRunnable, 1000L);// 倒计时 三分钟后结束
+
+        Intent intent = getIntent();
+        if (intent == null) return ;
+        UploadData uploadData = (UploadData) intent.getSerializableExtra(StringConstant.UPLOAD_DATA_KEY);
+        if (uploadData == null) return ;
+
+        for (int i=0; i<uploadData.getGymDataList().size(); i++) {
+            L.i("GymData", "GymData -> " + uploadData.getGymDataList().get(i).toString());
+        }
+
+        requestUploadData(uploadData);
     }
 
     // 初始化数据
     private void initData() {
         playSound();
+    }
+
+    // 课程完结上传数据
+    private void requestUploadData(UploadData uploadData) {
+        Retrofit retrofit = new Retrofit.Builder()
+//                .baseUrl("http://192.168.2.58:8080")
+                .baseUrl(Api.BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        ApiService service = retrofit.create(ApiService.class);
+        Call<UploadDataBean> model = service.saveGymData(uploadData);
+        model.enqueue(new Callback<UploadDataBean>() {
+            @Override
+            public void onResponse(Response<UploadDataBean> response, Retrofit retrofit) {
+                UploadDataBean bean = response.body();
+                int code = bean.getCode();
+
+                L.i("GymData", "code == " + code);
+                L.i("GymData", "message == " + bean.getMessage());
+
+                if (code == IntegerConstant.RESULT_OK) {// 数据上传成功
+
+                    L.i("GymData", "GymData -> isUploadFinish = true");
+
+                    viewSave.setVisibility(View.GONE);
+                    viewQr.setVisibility(View.VISIBLE);
+                }
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                // 连接服务器失败 检查网络设置或服务器问题 如果是网络问题 及时连接上网络之后数据重新上传 断网时间较长则数据可能会丢失
+                L.i("GymData", "onFailure");
+            }
+        });
     }
 
     // 倒计时
@@ -138,11 +200,12 @@ public class CourseEndActivity extends Activity {
             mp.release();
             mp = null;
         }
-
         imageBackground = null;
         textTitle = null;
         textYear = null;
         textTime = null;
+        viewSave = null;
+        viewQr = null;
 
         mHandler = null;
         mContext = null;

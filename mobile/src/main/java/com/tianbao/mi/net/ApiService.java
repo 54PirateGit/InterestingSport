@@ -53,8 +53,8 @@ public interface ApiService {
     Call<CurrencyBean> changeCourseLive(@QueryMap Map<String, String> param);
 
     // 上传用户运动数据
-    @POST(Api.SAVE_MOTION_DATA)
-    Call<UploadDataBean> saveMotionData(@Body UploadData param);
+    @POST(Api.SAVE_GYM_DATA)
+    Call<UploadDataBean> saveGymData(@Body UploadData param);
 
     // 解除绑定 用户与单车的关系
     @POST(Api.USER_UNBINDING)

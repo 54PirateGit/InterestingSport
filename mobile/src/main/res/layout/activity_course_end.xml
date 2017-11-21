@@ -19,36 +19,69 @@
         android:textColor="#DCDC08"
         android:textSize="42sp"/>
 
-    <ImageView
-        android:id="@+id/image"
-        android:layout_width="95dp"
-        android:layout_height="95dp"
-        android:background="@drawable/erwiem"
+    <LinearLayout
+        android:id="@+id/view_save"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_below="@id/text_title"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="62dp"
+        android:gravity="center"
         android:visibility="visible"
-        android:scaleType="center"/>
+        android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/text_share"
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="运动数据保存中..."
+            android:textColor="@color/white"
+            android:textSize="12sp"/>
+
+        <pl.droidsonroids.gif.GifImageView
+            android:layout_width="410dp"
+            android:layout_height="14dp"
+            android:src="@drawable/image_dynamic_load"
+            android:layout_marginTop="26dp"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/view_qr"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="分享这次运动!"
-        android:textColor="@color/white"
-        android:layout_below="@id/image"
+        android:layout_below="@id/text_title"
         android:layout_centerHorizontal="true"
-        android:textSize="12sp"
-        android:layout_marginTop="30dp"/>
+        android:layout_marginTop="62dp"
+        android:gravity="center"
+        android:visibility="gone"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/text_share"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="分享这次运动!"
+            android:textColor="@color/white"
+            android:textSize="12sp"/>
+
+        <ImageView
+            android:id="@+id/image"
+            android:layout_width="95dp"
+            android:layout_height="95dp"
+            android:background="@drawable/erwiem"
+            android:layout_marginTop="26dp"
+            android:scaleType="center"/>
+
+    </LinearLayout>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="您又坚持了一天，更加强健的体态在等着您！"
         android:textSize="18sp"
-        android:layout_below="@id/text_share"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="84dp"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="63dp"
         android:textColor="@color/white"/>
 
     <LinearLayout

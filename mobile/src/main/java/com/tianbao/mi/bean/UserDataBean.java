@@ -37,8 +37,6 @@ public class UserDataBean implements Serializable, Comparable<UserDataBean> {
 
     private long lastTime;// 最后获取到数据时的时间
 
-    private long time;// 保存数据时候的时间  如果速度这个数据在一定时间内都为0 则会有掉线机制处理
-
     @Override
     public int compareTo(@NonNull UserDataBean o) {
         int i = o.getCalorie() - this.getCalorie();// 按卡路里排序

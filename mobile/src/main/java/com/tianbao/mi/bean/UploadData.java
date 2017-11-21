@@ -12,7 +12,7 @@ import lombok.Data;
 @Data
 public class UploadData implements Serializable {
 
-    private List<MotionData> motionDataList;
+    private List<GymData> gymDataList;
 
     private List<UserHeart> userHeartList;
 }
