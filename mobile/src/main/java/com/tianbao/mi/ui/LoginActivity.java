@@ -146,7 +146,7 @@ public class LoginActivity extends AppCompatActivity {
                     startActivity(intent);
                     finish();
                 } else {
-                    T.alwaysShort(mContext, "code == " + code);
+                    T.alwaysShort(mContext, "账户或密码错误，请重新输入！");
                 }
             }
 

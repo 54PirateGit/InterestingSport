@@ -126,4 +126,13 @@ public class IntegerConstant {
 
     // 心率过快
     public final static int SOUND_WARM = 7;
+
+    // main 右边数量
+    public static int MAIN_LEFT_COUNT = 7;
+
+    // main 右边数量
+    public static int MAIN_RIGHT_COUNT = 5;
+
+    // main 放二维码时的数量
+    public static int MAIN_QR_CODE_COUNT = 24;
 }

@@ -84,6 +84,11 @@ public class MainActivity extends AppCompatActivity {
     @BindView(R.id.view_qr)
     View viewQr;
 
+    @BindView(R.id.image_qr_code)
+    ImageView imageQrCode;
+    @BindView(R.id.view_qr_code)
+    View viewQrCode;
+
     private Context mContext;
     private BDCloudVideoView mVV = null;// 百度云播放器
     private Handler mHandler = new Handler();// 处理线程
@@ -97,6 +102,7 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean isFront = true;// 标记此时在前在后
     private String playType;// 标识  点播 or 直播
+    private int currentPotion = 0;
 
     private boolean isCancelRequest = false;// 取消所有网络请求
 
@@ -138,7 +144,7 @@ public class MainActivity extends AppCompatActivity {
 
         setKey();// 所有 key
 
-//        initPlayer();// 初始化播放器
+        initPlayer();// 初始化播放器
         initView();
 
         Intent intent = getIntent();
@@ -150,6 +156,8 @@ public class MainActivity extends AppCompatActivity {
         } else {
             imageLiving.setVisibility(View.VISIBLE);
         }
+
+        initQr();// 初始化二维码
     }
 
     @Override
@@ -157,9 +165,9 @@ public class MainActivity extends AppCompatActivity {
         super.onStart();
         registerBroad();// 注册广播
 
-//        if (mVV != null && !mVV.isPlaying() && !TextUtils.isEmpty(StringConstant.LIVE_URL) && !StringConstant.LIVE_URL.equals("-1")) {
-//            mVV.start();
-//        }
+        if (mVV != null && !mVV.isPlaying() && !TextUtils.isEmpty(StringConstant.LIVE_URL) && !StringConstant.LIVE_URL.equals("-1")) {
+            mVV.start();
+        }
     }
 
     @Override
@@ -168,26 +176,43 @@ public class MainActivity extends AppCompatActivity {
         if (mReceiver != null) {
             unregisterReceiver(mReceiver);
         }
-//        if (mVV != null && mVV.isPlaying()) {
-//            mVV.pause();
-//        }
+        if (mVV != null && mVV.isPlaying()) {
+            mVV.stopPlayback();
+        }
     }
 
     // 初始化视图
     private void initView() {
         viewInfo.setAlpha(0.5f);
-        Bitmap qrBitmap = QrUtil.generateBitmap("hello world", 240, 240);
-        if (qrBitmap != null) {
-            viewQr.setVisibility(View.VISIBLE);
-            imageQr.setImageBitmap(qrBitmap);
-        } else {
-            viewQr.setVisibility(View.GONE);
-        }
 
         mHandler.postDelayed(mLoopUserDataRunnable, IntegerConstant.REFRESH_DATA_FREQUENCY);// 隔一定时间去获取用户数据
         mHandler.post(mLoopUserRelaRunnable);// 隔一定时间去获取用户绑定关系
         mHandler.postDelayed(mLoopSort, IntegerConstant.SORT_FREQUENCY);// 隔一定时间去根据用户数据排序
         mHandler.postDelayed(mChangeViewRunnable, IntegerConstant.FRONT_BACK_DATA_CHANGE_FIRST);// 前后面交换数据
+    }
+
+    // 初始化二维码
+    private void initQr() {
+        Bitmap qrBitmap = QrUtil.generateBitmap("hello world", 240, 240);
+        if (qrBitmap != null) {
+            if (mList != null && mList.size() > IntegerConstant.MAIN_QR_CODE_COUNT) {
+                imageQr.setImageBitmap(qrBitmap);
+                viewQr.setVisibility(View.VISIBLE);
+                viewQrCode.setVisibility(View.GONE);
+
+                IntegerConstant.MAIN_RIGHT_COUNT = 7;
+            } else {
+                imageQrCode.setImageBitmap(qrBitmap);
+                viewQrCode.setAlpha(0.5f);
+                viewQrCode.setVisibility(View.VISIBLE);
+
+                viewQr.setVisibility(View.GONE);
+                IntegerConstant.MAIN_RIGHT_COUNT = 5;
+            }
+        } else {
+            viewQr.setVisibility(View.GONE);
+            viewQrCode.setVisibility(View.GONE);
+        }
     }
 
     // 轮询去获取用户数据
@@ -322,19 +347,21 @@ public class MainActivity extends AppCompatActivity {
         MemberView childView;
         FitUser dataBean;
         if (mList == null || mList.size() <= 0) return;
+        initQr();// 初始化二维码
+
         for (int i = 0; i < mList.size(); i++) {
             childView = new MemberView(mContext);
             dataBean = mList.get(i);
             childView.setData(dataBean);
 
             // 目前只能排版 28 个
-            if (i < 7) {// 左排前面
+            if (i < IntegerConstant.MAIN_LEFT_COUNT) {// 左排前面
                 viewLeftFront.addView(childView);
-            } else if (i < 14) {// 右排前面
+            } else if (i < IntegerConstant.MAIN_LEFT_COUNT + IntegerConstant.MAIN_RIGHT_COUNT) {// 右排前面
                 viewRightFront.addView(childView);
-            } else if (i < 21) {// 左排后面
+            } else if (i < IntegerConstant.MAIN_LEFT_COUNT * 2 + IntegerConstant.MAIN_RIGHT_COUNT) {// 左排后面
                 viewLeftBack.addView(childView);
-            } else if (i < 28) {// 右排后面
+            } else if (i < IntegerConstant.MAIN_LEFT_COUNT * 2 + IntegerConstant.MAIN_RIGHT_COUNT * 2) {// 右排后面
                 viewRightBack.addView(childView);
             }
             vList.add(childView);// 保存
