@@ -112,4 +112,50 @@ public class DateUtils {
         String time = hour + "." + minute;
         return stringToLong(time, "HH.mm");
     }
+
+    /**
+     * 判断是否为今天(效率比较高)
+     * @param day 传入的 时间  "2016-06-28 10:10:30" "2016-06-28" 都可以
+     * @return true 今天  false 不是
+     */
+    public static boolean isToday(String day) throws ParseException {
+        Calendar pre = Calendar.getInstance();
+        Date predate = new Date(System.currentTimeMillis());
+        pre.setTime(predate);
+
+        Calendar cal = Calendar.getInstance();
+        Date date = getDateFormat().parse(day);
+        cal.setTime(date);
+
+        if (cal.get(Calendar.YEAR) == (pre.get(Calendar.YEAR))) {
+            int diffDay = cal.get(Calendar.DAY_OF_YEAR) - pre.get(Calendar.DAY_OF_YEAR);
+            if (diffDay == 0) return true;
+        }
+        return false;
+    }
+
+    /**
+     * 判断是否为昨天(效率比较高)
+     * @param day 传入的 时间  "2016-06-28 10:10:30" "2016-06-28" 都可以
+     * @return true 今天  false 不是
+     */
+    public static boolean isYesterday(String day) throws ParseException {
+        Calendar pre = Calendar.getInstance();
+        Date predate = new Date(System.currentTimeMillis());
+        pre.setTime(predate);
+
+        Calendar cal = Calendar.getInstance();
+        Date date = getDateFormat().parse(day);
+        cal.setTime(date);
+
+        if (cal.get(Calendar.YEAR) == (pre.get(Calendar.YEAR))) {
+            int diffDay = cal.get(Calendar.DAY_OF_YEAR) - pre.get(Calendar.DAY_OF_YEAR);
+            if (diffDay == -1) return true;
+        }
+        return false;
+    }
+
+    public static SimpleDateFormat getDateFormat() {
+        return new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+    }
 }

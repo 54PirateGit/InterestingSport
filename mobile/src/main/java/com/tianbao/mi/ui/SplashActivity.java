@@ -1,7 +1,6 @@
 package com.tianbao.mi.ui;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -22,6 +21,7 @@ import com.tianbao.mi.constant.StringConstant;
 import com.tianbao.mi.net.Api;
 import com.tianbao.mi.net.ApiService;
 import com.tianbao.mi.utils.BitmapUtils;
+import com.tianbao.mi.utils.DialogUtils;
 import com.tianbao.mi.utils.L;
 import com.tianbao.mi.utils.NetUtils;
 import com.tianbao.mi.utils.SPUtils;
@@ -47,6 +47,8 @@ public class SplashActivity extends Activity {
     private Context mContext;
     private ImageView advertisement;
     private ImageView imageBackground;
+    private View viewAd;// 广告位
+    private ImageView imageLoad;// 加载
 
     private boolean isCancelRequest;
 
@@ -65,11 +67,16 @@ public class SplashActivity extends Activity {
         Bitmap bitmap = BitmapUtils.readBitMap(mContext, R.drawable.splash);
         imageBackground.setImageBitmap(bitmap);
 
+        imageLoad = findViewById(R.id.image_load);
+
         if (!NetUtils.isNetworkAvailable(mContext)) {
-            showDialog("网络连接失败，请检查网络连接！");
+            DialogUtils.showDialog(SplashActivity.this, "网络连接失败，请检查网络连接！");
+            imageLoad.setVisibility(View.GONE);
             return ;
         }
+        imageLoad.setVisibility(View.VISIBLE);
 
+        viewAd = findViewById(R.id.view_ad);
         advertisement = findViewById(R.id.advertisement);
         init();
     }
@@ -85,13 +92,7 @@ public class SplashActivity extends Activity {
             }, IntegerConstant.SPLASH_INTO_TIME);// 跳转到登录
         } else if (type == IntegerConstant.DYNAMIC_SYSTEM_TYPE) {// 动感单车
             IntegerConstant.STORE_ID = (int) SPUtils.get(mContext, StringConstant.STORE_ID_SP_KEY, 0);// 如果已经登录过则有数据
-
-            String name = (String) SPUtils.get(mContext, StringConstant.STORE_NAME_KEY, "-1");
-            if (name == null || name.equals("-1")) {
-                requestCourse(IntegerConstant.STORE_ID);
-            } else {
-                StringConstant.STORE_NAME = name;
-            }
+            requestCourse(IntegerConstant.STORE_ID);
             requestApp(StringConstant.DEVICE_ID);
         } else if (type == IntegerConstant.CALISTHENICS_SYSTEM_TYPE) {// 团操
             mHandler.postDelayed(() -> {
@@ -119,13 +120,15 @@ public class SplashActivity extends Activity {
             public void onResponse(Response<CourseInfoBean> response, Retrofit retrofit) {
                 if (isCancelRequest) return;
                 CourseInfoBean courseInfo = response.body();
+                if (courseInfo == null) {
+                    return ;
+                }
                 int code = courseInfo.getCode();
                 if (code == IntegerConstant.RESULT_OK) {
                     L.v("courseInfo", "courseInfo -> > > " + courseInfo.toString());
                     try {
                         String storeName = courseInfo.getData().getStore().getName();
-                        if (TextUtils.isEmpty(storeName)) StringConstant.STORE_NAME = storeName;
-                        SPUtils.put(mContext, StringConstant.STORE_NAME_KEY, StringConstant.STORE_NAME);
+                        if (!TextUtils.isEmpty(storeName)) StringConstant.STORE_NAME = storeName;
                     } catch (Exception e) {
                         e.printStackTrace();
                         L.w("数据获取失败或保存数据发生错误");
@@ -193,7 +196,7 @@ public class SplashActivity extends Activity {
                         if (!TextUtils.isEmpty(urlString)) {
                             initBanner(urlString);
                         } else {
-                            advertisement.setVisibility(View.GONE);
+                            viewAd.setVisibility(View.GONE);
                         }
 
                         L.i("SplashActivity", "用户数据刷新时间：" + IntegerConstant.REFRESH_DATA_FREQUENCY);
@@ -254,10 +257,10 @@ public class SplashActivity extends Activity {
                     } else {
                         String message = bean.getMessage();
                         if (!TextUtils.isEmpty(message) && message.equals("账户无效")) {
-                            showDialog("账号已过期，请联系管理员！");
+                            DialogUtils.showDialog(SplashActivity.this, "账号已过期，请联系管理员！");
                         } else {
                             if (count == IntegerConstant.RESTART_REQUEST_COUNT) {// 重复请求依然获取不到数据
-                                showDialog("账号验证失败，请重新验证！");
+                                DialogUtils.showDialog(SplashActivity.this, "系统启动失败，请联系恬宝科技公司！");
                             } else {
                                 mHandler.postDelayed(mLoopRequestRunnable, RESTART_REQUEST_TIME);
                             }
@@ -265,7 +268,7 @@ public class SplashActivity extends Activity {
                     }
                 } else {
                     if (count == IntegerConstant.RESTART_REQUEST_COUNT) {
-                        showDialog("获取信息失败，请稍后重试！");
+                        DialogUtils.showDialog(SplashActivity.this, "系统启动失败，请联系恬宝科技公司！");
                     } else {
                         mHandler.postDelayed(mLoopRequestRunnable, RESTART_REQUEST_TIME);
                     }
@@ -275,7 +278,7 @@ public class SplashActivity extends Activity {
             @Override
             public void onFailure(Throwable t) {
                 if (count == IntegerConstant.RESTART_REQUEST_COUNT) {
-                    showDialog("连接服务器失败，请稍后重试！");
+                    DialogUtils.showDialog(SplashActivity.this, "系统启动失败，请联系恬宝科技公司！");
                 } else {
                     mHandler.postDelayed(mLoopRequestRunnable, RESTART_REQUEST_TIME);
                 }
@@ -283,22 +286,9 @@ public class SplashActivity extends Activity {
         });
     }
 
-    // 提示
-    private void showDialog(String content) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-        builder.setTitle("提示");
-        builder.setMessage(content);
-        builder.setCancelable(false);
-        builder.setNegativeButton("确定", (dialog, which) -> {
-            finish();
-            MyApp.appExit();
-        });
-        builder.show();
-    }
-
     // 设置图片
     private void initBanner(String urls) {
-        advertisement.setVisibility(View.VISIBLE);
+        viewAd.setVisibility(View.VISIBLE);
         Picasso.with(mContext).load(urls).into(advertisement);
     }
 
@@ -322,8 +312,10 @@ public class SplashActivity extends Activity {
             mHandler = null;
         }
 
+        imageLoad = null;
         imageBackground = null;
         advertisement = null;
+        viewAd = null;
         mContext = null;
     }
 }

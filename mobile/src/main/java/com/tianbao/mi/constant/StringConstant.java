@@ -75,6 +75,9 @@ public class StringConstant {
     // 直播地址
     public static String LIVE_URL = "-1";
 
+    // 点播地址
+    public static String DEMAND_URL = "-1";
+
     // 直播中的课程
     public static String LIVE_STATU_ING = "直播中";
 
@@ -82,6 +85,8 @@ public class StringConstant {
     public static String  LIVE_STATU_OVER = "直播结束";
 
     public final static String PLAY_TYPE = "PLAY_TYPE";
+
+    public final static String PLAY_URL = "PLAY_URL";
 
     // 标识 点播
     public final static String DEMAND_PLAY_TYPE = "DEMAND_PLAY_TYPE";

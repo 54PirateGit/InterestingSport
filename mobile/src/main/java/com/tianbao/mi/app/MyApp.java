@@ -9,15 +9,18 @@ import android.os.Bundle;
 import android.os.Process;
 
 import com.tianbao.mi.constant.StringConstant;
+import com.tianbao.mi.utils.DateUtils;
 import com.tianbao.mi.utils.DevicesUtils;
 import com.tianbao.mi.utils.L;
 import com.tianbao.mi.utils.SoundPlayUtils;
 import com.tianbao.mi.widget.bdplayer.BDCloudVideoView;
 import com.xiaomi.mipush.sdk.MiPushClient;
 
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -34,9 +37,29 @@ public class MyApp extends Application {
 
     private static int courseId = 0;
 
+    private static long OPEN_APP_TIME = System.currentTimeMillis();// 打开 app 的时间
     private static List<String> loadImageUrl;// 加载界面图片地址
     private static List<String> upUrl;// 待机界面图片地址
     private static List<String> downUrl;// 待机界面图片二维码
+
+    /**
+     * 时间验证
+     */
+    public static boolean verification() {
+        try {
+            String date = DateUtils.dateToString(new Date(MyApp.OPEN_APP_TIME), "yyyy-MM-dd");
+            if (DateUtils.isToday(date)) {
+                L.d("isToday", date + " -> 今天");
+                return true;
+            } else {
+                L.d("isToday", date + "-> 不是今天");
+                return false;
+            }
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 
     /**
      * 获取图片地址

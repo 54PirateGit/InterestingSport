@@ -39,7 +39,7 @@ public class PartnerLayout extends LinearLayout {
         @Override
         public void run() {
             if (vList != null && vList.size() > 0) {
-                if (vList.size() > 6) {
+                if (vList.size() > IntegerConstant.STANDBY_YIN_NUMBER) {
                     if (tList != null && tList.size() > 0) {
                         if (getChildCount() == tList.size()) {
                             for (int i=0; i< tList.size(); i++) {
@@ -54,10 +54,10 @@ public class PartnerLayout extends LinearLayout {
                         if (tList == null) tList = new ArrayList<>();
                         else tList.clear();
                         for (; position<vList.size(); position++) {
-                            if (tList.size() == 6) break;
+                            if (tList.size() == IntegerConstant.STANDBY_YIN_NUMBER) break;
                             tList.add(vList.get(position));
                         }
-                        if (tList.size() < 6) position = 0;
+                        if (tList.size() < IntegerConstant.STANDBY_YIN_NUMBER) position = 0;
                         for (int i=0; i<tList.size(); i++) addView(tList.get(i));
                         for (int i=0; i<getChildCount(); i++) animBack(getChildAt(i));
                         invalidate();

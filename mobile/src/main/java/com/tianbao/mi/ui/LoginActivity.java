@@ -1,5 +1,6 @@
 package com.tianbao.mi.ui;
 
+import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -14,6 +15,7 @@ import com.tianbao.mi.constant.IntegerConstant;
 import com.tianbao.mi.constant.StringConstant;
 import com.tianbao.mi.net.Api;
 import com.tianbao.mi.net.ApiService;
+import com.tianbao.mi.utils.DialogUtils;
 import com.tianbao.mi.utils.L;
 import com.tianbao.mi.utils.SPUtils;
 import com.tianbao.mi.utils.T;
@@ -44,6 +46,7 @@ public class LoginActivity extends AppCompatActivity {
     EditText passwordText;
 
     private Context mContext;
+    private Dialog dialogLoading;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +61,9 @@ public class LoginActivity extends AppCompatActivity {
     private void request() {
         String[] user = checkInputContent();
         if (user == null || user.length < 3) return ;
+
+        dialogLoading = DialogUtils.dialogLoading(mContext);
+        dialogLoading.show();
 
         Map<String, String> param = new HashMap<>();
         param.put("account", user[0]);
@@ -75,6 +81,7 @@ public class LoginActivity extends AppCompatActivity {
         model.enqueue(new Callback<LoginBean>() {
             @Override
             public void onResponse(Response<LoginBean> response, Retrofit retrofit) {
+                if (dialogLoading != null) dialogLoading.dismiss();
                 L.v("response", "response == " + response.body().toString());
 
                 List<String> bannerList = null;
@@ -146,12 +153,17 @@ public class LoginActivity extends AppCompatActivity {
                     startActivity(intent);
                     finish();
                 } else {
-                    T.alwaysShort(mContext, "账户或密码错误，请重新输入！");
+                    String message = loginBean.getMessage();
+                    if (TextUtils.isEmpty(message) || message.equals("null") || message.equals("NULL")) {
+                        message = "账户或密码错误，请重新输入！";
+                    }
+                    T.alwaysShort(mContext, message);
                 }
             }
 
             @Override
             public void onFailure(Throwable t) {
+                if (dialogLoading != null) dialogLoading.dismiss();
                 T.connectFailTip(mContext);
             }
         });
@@ -185,11 +197,29 @@ public class LoginActivity extends AppCompatActivity {
         request();
     }
 
+    private long time;
+
+    @Override
+    public void onBackPressed() {
+        long curTime = System.currentTimeMillis();
+        if (curTime - time >= IntegerConstant.APP_EXIT_TIME) {
+            T.alwaysLong(mContext, "再按一次返回键退出程序！");
+            time = curTime;
+        } else {
+            finish();
+            MyApp.appExit();
+        }
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
         adminText = null;
         passwordText = null;
+        if (dialogLoading != null) {
+            dialogLoading.dismiss();
+            dialogLoading = null;
+        }
     }
 }
 

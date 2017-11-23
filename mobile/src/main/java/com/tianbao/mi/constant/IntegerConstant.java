@@ -135,4 +135,7 @@ public class IntegerConstant {
 
     // main 放二维码时的数量
     public static int MAIN_QR_CODE_COUNT = 24;
+
+    // 待机页瘾伙伴一组展示人数
+    public static int STANDBY_YIN_NUMBER = 7;
 }

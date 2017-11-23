@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.Typeface;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.TextUtils;
@@ -63,6 +64,8 @@ import retrofit.Callback;
 import retrofit.GsonConverterFactory;
 import retrofit.Response;
 import retrofit.Retrofit;
+
+import static com.tianbao.mi.constant.IntegerConstant.RESTART_REQUEST_TIME;
 
 /**
  * 待机界面
@@ -121,6 +124,8 @@ public class StandbyActivity extends Activity {
     private List<String> upList = new ArrayList<>();
     private List<String> downList = new ArrayList<>();
 
+    private MediaPlayer mp;
+
     private void setKey() {
         int storeId = (int) SPUtils.get(mContext, StringConstant.STORE_ID_SP_KEY, 1);
         String kString;
@@ -144,6 +149,17 @@ public class StandbyActivity extends Activity {
         textName.setTypeface(tf);
     }
 
+    // 播放背景音乐
+    private void playSound() {
+        try {
+            mp = MediaPlayer.create(mContext, R.raw.standby);// 重新设置要播放的音频
+            mp.setLooping(true);
+            mp.start();// 开始播放
+        } catch (Exception e) {
+            e.printStackTrace();// 输出异常信息
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -159,6 +175,7 @@ public class StandbyActivity extends Activity {
     protected void onStart() {
         super.onStart();
 
+        playSound();
         registerBroad();// 注册广播
         mHandler.post(mLoopLiveListRunnable);
         if (isLoop) {
@@ -182,8 +199,17 @@ public class StandbyActivity extends Activity {
         if (reStartRequest != null) {
             mHandler.removeCallbacks(reStartRequest);
         }
+        if (mGetCourseInfoRunnable != null) {
+            mHandler.removeCallbacks(mGetCourseInfoRunnable);
+        }
         if (mReceiver != null) {
             unregisterReceiver(mReceiver);
+        }
+        if (mp != null) {
+            mp.stop();
+            mp.reset();
+            mp.release();
+            mp = null;
         }
     }
 
@@ -202,7 +228,7 @@ public class StandbyActivity extends Activity {
         requestUserInfo(key);
         scrollList.setAlpha(0.5f);
 
-        mHandler.postDelayed(() -> requestOnDemandList(), IntegerConstant.RESTART_REQUEST_TIME);
+        mHandler.postDelayed(() -> requestOnDemandList(), RESTART_REQUEST_TIME);
     }
 
     // 初始化轮播图
@@ -231,7 +257,7 @@ public class StandbyActivity extends Activity {
         downList = MyApp.getDownUrl();
         viewQr.setAlpha(0.65f);
         if (downList != null && downList.size() > 0) {
-            Bitmap qrBitmap = QrUtil.generateBitmap(downList.get(0), 300, 300);
+            Bitmap qrBitmap = QrUtil.generateBitmap(mContext, downList.get(0), 300, 300, true);
             if (qrBitmap != null) {
                 imageQr.setVisibility(View.VISIBLE);
                 imageQr.setImageBitmap(qrBitmap);
@@ -258,6 +284,13 @@ public class StandbyActivity extends Activity {
         public void run() {
             requestLiveList();
             mHandler.postDelayed(this, IntegerConstant.GET_LIVE_COURSE_LIST);
+        }
+    };
+
+    private Runnable mGetCourseInfoRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (MyApp.getCourseId() != 0) request();
         }
     };
 
@@ -299,6 +332,7 @@ public class StandbyActivity extends Activity {
                 if (bean != null) {
                     int code = bean.getCode();
                     if (code == IntegerConstant.RESULT_OK) {
+                        count2 = 0;
                         oList = bean.getData();
                         if (oList == null || oList.size() <= 0) return;
                         oAdapter = new OnDemandAdapter(mContext, oList);
@@ -310,7 +344,7 @@ public class StandbyActivity extends Activity {
                         oAdapter.notifyDataSetChanged();
                     } else {
                         L.w("requestOnDemandList", "data is error");
-                        mHandler.postDelayed(reStartRequestDemand, IntegerConstant.RESTART_REQUEST_TIME);
+                        mHandler.postDelayed(reStartRequestDemand, RESTART_REQUEST_TIME);
                     }
                     if (isSelectLive) {
                         listDemand.setVisibility(View.GONE);
@@ -319,7 +353,7 @@ public class StandbyActivity extends Activity {
                     }
                 } else {
                     L.w("requestOnDemandList", "data is null");
-                    mHandler.postDelayed(reStartRequestDemand, IntegerConstant.RESTART_REQUEST_TIME);
+                    mHandler.postDelayed(reStartRequestDemand, RESTART_REQUEST_TIME);
                 }
             }
 
@@ -359,6 +393,7 @@ public class StandbyActivity extends Activity {
                         textDemand.setBackground(null);
                         return;
                     }
+                    count1 = 0;
                     isSelectTab = false;
                     if (dList.size() <= 3) imageMore.setVisibility(View.INVISIBLE);
                     else imageMore.setVisibility(View.VISIBLE);
@@ -370,9 +405,7 @@ public class StandbyActivity extends Activity {
                         ListViewUtils.setListHeight(listLive);
                         lAdapter.notifyDataSetChanged();
 
-                        mHandler.postDelayed(() -> {
-                            if (MyApp.getCourseId() != 0) request();
-                        }, IntegerConstant.INTO_LIVE_COURSE_TIME);
+                        mHandler.postDelayed(mGetCourseInfoRunnable, IntegerConstant.INTO_LIVE_COURSE_TIME);
                     } else {// 界面有更新
                         lAdapter.notifyDataSetChanged();
                     }
@@ -383,7 +416,7 @@ public class StandbyActivity extends Activity {
                         listLive.setVisibility(View.GONE);
                     }
                 } else {
-                    mHandler.postDelayed(reStartRequest, IntegerConstant.RESTART_REQUEST_TIME);
+                    mHandler.postDelayed(reStartRequest, RESTART_REQUEST_TIME);
 
                     L.d("requestLiveList", "requestLiveList 获取课程信息失败，请稍后重试");
                 }
@@ -393,7 +426,7 @@ public class StandbyActivity extends Activity {
             public void onFailure(Throwable t) {
                 L.d("requestLiveList", "requestLiveList 连接服务器失败");
 
-                mHandler.postDelayed(reStartRequest, IntegerConstant.RESTART_REQUEST_TIME);
+                mHandler.postDelayed(reStartRequest, RESTART_REQUEST_TIME);
             }
         });
     }
@@ -430,7 +463,7 @@ public class StandbyActivity extends Activity {
                             }
                         }
                         lAdapter.setList(dList);
-                        mHandler.postDelayed(() -> request(), IntegerConstant.INTO_LIVE_COURSE_TIME);
+                        mHandler.postDelayed(mGetCourseInfoRunnable, IntegerConstant.INTO_LIVE_COURSE_TIME);
                     }
                 } else {
                     L.d("selectLiveList", "selectLiveList 获取课程信息失败，请重试");
@@ -482,7 +515,7 @@ public class StandbyActivity extends Activity {
                             }
                         }
                         lAdapter.setList(dList);
-                        mHandler.postDelayed(() -> request(), IntegerConstant.INTO_LIVE_COURSE_TIME);
+                        mHandler.postDelayed(mGetCourseInfoRunnable, IntegerConstant.INTO_LIVE_COURSE_TIME);
                     }
                 } else {
                     L.d("changeLiveList", "changeLiveList 获取课程信息失败，请重试");
@@ -517,8 +550,10 @@ public class StandbyActivity extends Activity {
                 if (isCancelRequest) return;
                 CourseInfoBean courseInfo = response.body();
                 if (courseInfo == null) {
-                    isLoop = true;
-                    mHandler.postDelayed(mLoopRequestRunnable, IntegerConstant.GET_COURSE_INFO_LOOP_TIME);
+                    if (!isLoop) {
+                        isLoop = true;
+                        mHandler.postDelayed(mLoopRequestRunnable, IntegerConstant.GET_COURSE_INFO_LOOP_TIME);
+                    }
                     return;
                 }
 
@@ -528,17 +563,24 @@ public class StandbyActivity extends Activity {
 
                     CourseInfoBean.DataBean.CourseBean course = courseInfo.getData().getCourse();
                     if (course == null) {// 轮询获取数据线程开关由数据决定
-                        isLoop = true;
-                        mHandler.postDelayed(mLoopRequestRunnable, IntegerConstant.GET_COURSE_INFO_LOOP_TIME);
+                        if (!isLoop) {// 内存溢出
+                            isLoop = true;
+                            mHandler.postDelayed(mLoopRequestRunnable, IntegerConstant.GET_COURSE_INFO_LOOP_TIME);
+                        }
                     } else {
                         if (course.getLiveStatus().equals(StringConstant.LIVE_STATU_ING)) {
-                            SoundPlayUtils.play(IntegerConstant.SOUND_START_LOAD);// 播放背景音乐
+//                            SoundPlayUtils.play(IntegerConstant.SOUND_START_LOAD);// 播放背景音乐
 
                             isLoop = false;
                             Intent intent = new Intent(StandbyActivity.this, LoadActivity.class);
                             intent.putExtra(StringConstant.PLAY_TYPE, StringConstant.LIVE_PLAY_TYPE);
                             startActivity(intent);// 进入加载
                             finish();
+                        } else {
+                            if (!isLoop) {
+                                isLoop = true;
+                                mHandler.postDelayed(mLoopRequestRunnable, IntegerConstant.GET_COURSE_INFO_LOOP_TIME);
+                            }
                         }
                     }
                 }
@@ -574,6 +616,8 @@ public class StandbyActivity extends Activity {
 
     // 进入直播
     private Runnable mIntoLiveRunnable = () -> {
+//        SoundPlayUtils.play(IntegerConstant.SOUND_START_LOAD);// 播放背景音乐
+
         isLoop = false;
         Intent intent = new Intent(StandbyActivity.this, LoadActivity.class);
         intent.putExtra(StringConstant.PLAY_TYPE, StringConstant.LIVE_PLAY_TYPE);
@@ -614,6 +658,7 @@ public class StandbyActivity extends Activity {
                 if (IntegerConstant.RESULT_OK == code) {
                     L.v("response", buildBean.toString());
 
+                    count3 = 0;
                     Map<String, Map<String, String>> rMap = buildBean.getData();
 
                     for (Map.Entry<String, Map<String, String>> entry : rMap.entrySet()) {
@@ -645,19 +690,21 @@ public class StandbyActivity extends Activity {
                             view.updateView(pBean);
                             viewPartner.setPartnerView(view);
 
-                            SoundPlayUtils.play(IntegerConstant.SOUND_PARTNER_JOIN);// 播放背景音乐  有新的瘾伙伴加入
+                            mHandler.postDelayed(() -> {
+                                SoundPlayUtils.play(IntegerConstant.SOUND_PARTNER_JOIN);// 播放背景音乐  有新的瘾伙伴加入
+                            }, 2500L);
                         }
                     }
                 } else {
                     L.d("requestUserInfo", "requestUserInfo 没有获取到数据或获取数据失败");
-                    mHandler.postDelayed(mRestartRequestUserInfoRunnable, IntegerConstant.RESTART_REQUEST_TIME);
+                    mHandler.postDelayed(mRestartRequestUserInfoRunnable, RESTART_REQUEST_TIME);
                 }
             }
 
             @Override
             public void onFailure(Throwable t) {
                 L.d("requestUserInfo", "requestUserInfo 连接服务器失败");
-                mHandler.postDelayed(mRestartRequestUserInfoRunnable, IntegerConstant.RESTART_REQUEST_TIME);
+                mHandler.postDelayed(mRestartRequestUserInfoRunnable, RESTART_REQUEST_TIME);
             }
         });
     }
@@ -667,7 +714,7 @@ public class StandbyActivity extends Activity {
     // 处理遥控器按键事件
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
-        if (isLoad || lAdapter == null) return super.dispatchKeyEvent(event);
+        if (isLoad) return true;
         int keyCode = event.getKeyCode();
         if (event.getAction() == KeyEvent.ACTION_UP) {
             // up 事件,这里多数情况不需要处理
@@ -783,6 +830,7 @@ public class StandbyActivity extends Activity {
                         }
                     }
                 } else {// 焦点在点播列表中
+                    StringConstant.DEMAND_URL = oList.get(position).getLiveUrl();
                     Intent intent = new Intent(StandbyActivity.this, LoadActivity.class);
                     intent.putExtra(StringConstant.PLAY_TYPE, StringConstant.DEMAND_PLAY_TYPE);
                     startActivity(intent);// 进入加载
@@ -870,14 +918,6 @@ public class StandbyActivity extends Activity {
         if (ids != null) {
             ids.clear();
             ids = null;
-        }
-        if (upList != null) {
-            upList.clear();
-            upList = null;
-        }
-        if (downList != null) {
-            downList.clear();
-            downList = null;
         }
         mContext = null;
         lAdapter = null;

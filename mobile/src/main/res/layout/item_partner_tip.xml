@@ -25,6 +25,8 @@
             android:text="刘婷"
             android:textColor="#DCDC08"
             android:layout_marginLeft="9dp"
+            android:maxLength="5"
+            android:ellipsize="end"
             android:textSize="12sp"/>
 
         <TextView

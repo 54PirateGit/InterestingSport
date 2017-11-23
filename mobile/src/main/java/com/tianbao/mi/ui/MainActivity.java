@@ -102,7 +102,6 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean isFront = true;// 标记此时在前在后
     private String playType;// 标识  点播 or 直播
-    private int currentPotion = 0;
 
     private boolean isCancelRequest = false;// 取消所有网络请求
 
@@ -117,7 +116,17 @@ public class MainActivity extends AppCompatActivity {
     // 初始化播放器
     private void initPlayer() {
         mVV = (BDCloudVideoView) findViewById(R.id.bd_player);
+//        if (playType.equals(StringConstant.LIVE_PLAY_TYPE)) {
+//            mVV.setVideoPath(StringConstant.DEMAND_URL);
+//
+//            L.i("playUrl", "playUrl -> " + StringConstant.DEMAND_URL);
+//        } else {
+//            mVV.setVideoPath(StringConstant.LIVE_URL);
+//
+//            L.i("playUrl", "playUrl -> " + StringConstant.LIVE_URL);
+//        }
         mVV.setVideoPath(StringConstant.LIVE_URL);
+
         mVV.setVideoScalingMode(BDCloudVideoView.VIDEO_SCALING_MODE_SCALE_TO_FIT);
         mVV.setOnCompletionListener(iMediaPlayer -> mHandler.postDelayed(() -> courseEnd(), IntegerConstant.INTO_COURSE_END));
         mVV.start();
@@ -142,11 +151,6 @@ public class MainActivity extends AppCompatActivity {
         ButterKnife.bind(this);
         mContext = this;
 
-        setKey();// 所有 key
-
-        initPlayer();// 初始化播放器
-        initView();
-
         Intent intent = getIntent();
         if (intent == null) return;
         playType = intent.getStringExtra(StringConstant.PLAY_TYPE);
@@ -156,6 +160,11 @@ public class MainActivity extends AppCompatActivity {
         } else {
             imageLiving.setVisibility(View.VISIBLE);
         }
+
+        setKey();// 所有 key
+
+        initPlayer();// 初始化播放器
+        initView();
 
         initQr();// 初始化二维码
     }
@@ -193,7 +202,7 @@ public class MainActivity extends AppCompatActivity {
 
     // 初始化二维码
     private void initQr() {
-        Bitmap qrBitmap = QrUtil.generateBitmap("hello world", 240, 240);
+        Bitmap qrBitmap = QrUtil.generateBitmap(mContext, "hello world", 240, 240, true);
         if (qrBitmap != null) {
             if (mList != null && mList.size() > IntegerConstant.MAIN_QR_CODE_COUNT) {
                 imageQr.setImageBitmap(qrBitmap);
@@ -250,7 +259,9 @@ public class MainActivity extends AppCompatActivity {
             if (action.equals(StringConstant.BROAD_BUILD_UPDATE)) {// 有新的用户绑定关系需要处理
                 requestUserInfo();
             } else if (action.equals(StringConstant.BROAD_END_COURSE)) {// 课程结束
-                courseEnd();
+                if (playType.equals(StringConstant.LIVE_PLAY_TYPE)) {
+                    courseEnd();
+                }
             }
         }
     };
@@ -668,12 +679,11 @@ public class MainActivity extends AppCompatActivity {
                 UploadDataBean bean = response.body();
                 int code = bean.getCode();
                 if (code == IntegerConstant.RESULT_OK) {
-                    T.showShort(mContext, "数据上传成功");
-
+                    L.i("mDataList", "数据上传成功");
                     mDataList.clear();
 
                 } else {
-                    T.showShort(mContext, "数据上传失败");
+                    L.i("mDataList", "数据上传失败");
                 }
             }
 
@@ -772,7 +782,7 @@ public class MainActivity extends AppCompatActivity {
         String cadence = data1.get(StringConstant.KEY_CADENCE);// 踏频
         String interval4Cadence = data1.get(StringConstant.KEY_INTERVAL_CADENCE);// 踏频间隔时间
 
-        if (!TextUtils.isEmpty(userId) || !userId.equals("NaN") || userId.equals("null")) {
+        if (!TextUtils.isEmpty(userId) && !userId.equals("NaN") && !userId.equals("null")) {
             if (mDataList != null && mDataList.size() > 0) {
                 for (int i=0; i<mDataList.size(); i++) {
                     UserHeart userHeart = mDataList.get(i);

@@ -1,6 +1,8 @@
 package com.tianbao.mi.utils;
 
+import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 
 import com.google.zxing.BarcodeFormat;
@@ -9,11 +11,14 @@ import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
+import com.tianbao.mi.R;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+
+import static android.graphics.Bitmap.createBitmap;
 
 /**
  * 生成二维码图片
@@ -22,7 +27,7 @@ import java.util.Map;
 public class QrUtil {
 
     // 生成二维码
-    public static Bitmap generateBitmap(String content, int width, int height) {
+    public static Bitmap generateBitmap(Context context, String content, int width, int height, boolean logo) {
         QRCodeWriter qrCodeWriter = new QRCodeWriter();
         Map<EncodeHintType, String> hints = new HashMap<>();
         hints.put(EncodeHintType.CHARACTER_SET, "utf-8");
@@ -38,7 +43,12 @@ public class QrUtil {
                     }
                 }
             }
-            return Bitmap.createBitmap(pixels, 0, width, width, height, Bitmap.Config.RGB_565);
+            Bitmap bitmap = Bitmap.createBitmap(pixels, 0, width, width, height, Bitmap.Config.RGB_565);
+            if (logo) {
+                Bitmap logoBm = BitmapFactory.decodeResource(context.getResources(), R.drawable.qr_logo);
+                bitmap = addLogo(bitmap, logoBm);
+            }
+            return bitmap;
         } catch (WriterException e) {
             e.printStackTrace();
         }
@@ -85,7 +95,7 @@ public class QrUtil {
             }
 
             // 生成二维码图片的格式，使用ARGB_8888
-            Bitmap bitmap = Bitmap.createBitmap(widthPix, heightPix, Bitmap.Config.ARGB_8888);
+            Bitmap bitmap = createBitmap(widthPix, heightPix, Bitmap.Config.ARGB_8888);
             bitmap.setPixels(pixels, 0, widthPix, 0, 0, widthPix, heightPix);
 
             if (logoBm != null) {
@@ -118,7 +128,7 @@ public class QrUtil {
 
         // logo 大小为二维码整体大小的 1/5
         float scaleFactor = srcWidth * 1.0f / 5 / logoWidth;
-        Bitmap bitmap = Bitmap.createBitmap(srcWidth, srcHeight, Bitmap.Config.ARGB_8888);
+        Bitmap bitmap = createBitmap(srcWidth, srcHeight, Bitmap.Config.ARGB_8888);
         try {
             Canvas canvas = new Canvas(bitmap);
             canvas.drawBitmap(src, 0, 0, null);
