@@ -62,6 +62,33 @@
         android:layout_alignParentBottom="true"
         android:background="@drawable/card_background">
 
+        <LinearLayout
+            android:id="@+id/view_record"
+            android:layout_width="88dp"
+            android:layout_height="26dp"
+            android:visibility="gone"
+            android:layout_alignParentRight="true"
+            android:background="@drawable/record_background"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="10dp"
+                android:src="@drawable/lubo"/>
+
+            <TextView
+                android:id="@+id/text_record"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="录播中"
+                android:textColor="@color/white"
+                android:textSize="10sp"
+                android:layout_marginLeft="5dp"
+                android:visibility="visible"/>
+
+        </LinearLayout>
+
         <ImageView
             android:id="@+id/living"
             android:layout_width="88dp"
@@ -76,9 +103,9 @@
             android:layout_height="match_parent"
             android:layout_alignParentRight="true"
             android:layout_marginRight="10dp"
-            android:layout_below="@id/living"
-            android:layout_marginTop="5dp"
+            android:layout_marginTop="31dp"
             android:layout_marginBottom="10dp"
+            android:visibility="visible"
             android:orientation="horizontal">
 
             <LinearLayout
@@ -197,7 +224,7 @@
         android:id="@+id/view_qr_code"
         android:layout_width="151dp"
         android:layout_height="140dp"
-        android:background="@drawable/card_white_background"
+        android:background="@drawable/card_background"
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
         android:layout_marginBottom="14dp"

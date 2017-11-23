@@ -98,6 +98,28 @@ public class AutoScrollListView extends ListView {
         return isJoinRun;
     }
 
+    // 回收
+    public void recovery() {
+        if (updateRunnable != null) {
+            removeCallbacks(updateRunnable);
+        }
+
+        if (updatePartnerRunnable != null) {
+            removeCallbacks(updatePartnerRunnable);
+        }
+
+        if (iList != null) {
+            iList.clear();
+        }
+
+        if(pList != null) {
+            pList.clear();
+        }
+        isTipRun = false;
+        isJoinRun = false;
+    }
+
+
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
@@ -120,5 +142,7 @@ public class AutoScrollListView extends ListView {
             pList.clear();
             pList = null;
         }
+        isTipRun = false;
+        isJoinRun = false;
     }
 }

@@ -118,6 +118,22 @@ public class PartnerLayout extends LinearLayout {
         set.start();
     }
 
+    // 回收资源
+    public void recovery() {
+        if (mHandler != null) {
+            if (mLoopListRunnable != null) {
+                mHandler.removeCallbacks(mLoopListRunnable);
+            }
+        }
+        if (vList != null) {
+            vList.clear();
+        }
+        if (tList != null) {
+            tList.clear();
+        }
+        isLoop = false;
+    }
+
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();

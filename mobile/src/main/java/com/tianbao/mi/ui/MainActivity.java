@@ -75,6 +75,8 @@ public class MainActivity extends AppCompatActivity {
     RelativeLayout viewInfo;// 底部信息板
     @BindView(R.id.living)
     ImageView imageLiving;// 直播中  点播进来时不需要显示
+    @BindView(R.id.view_record)
+    View viewRecord;// 录播中
 
     @BindView(R.id.auto_scroll_list)
     AutoScrollListView autoScrollListView;
@@ -116,17 +118,15 @@ public class MainActivity extends AppCompatActivity {
     // 初始化播放器
     private void initPlayer() {
         mVV = (BDCloudVideoView) findViewById(R.id.bd_player);
-//        if (playType.equals(StringConstant.LIVE_PLAY_TYPE)) {
-//            mVV.setVideoPath(StringConstant.DEMAND_URL);
-//
-//            L.i("playUrl", "playUrl -> " + StringConstant.DEMAND_URL);
-//        } else {
-//            mVV.setVideoPath(StringConstant.LIVE_URL);
-//
-//            L.i("playUrl", "playUrl -> " + StringConstant.LIVE_URL);
-//        }
-        mVV.setVideoPath(StringConstant.LIVE_URL);
+        if (playType.equals(StringConstant.LIVE_PLAY_TYPE)) {
+            mVV.setVideoPath(StringConstant.DEMAND_URL);
 
+            L.i("playUrl", "playUrl -> " + StringConstant.DEMAND_URL);
+        } else {
+            mVV.setVideoPath(StringConstant.LIVE_URL);
+
+            L.i("playUrl", "playUrl -> " + StringConstant.LIVE_URL);
+        }
         mVV.setVideoScalingMode(BDCloudVideoView.VIDEO_SCALING_MODE_SCALE_TO_FIT);
         mVV.setOnCompletionListener(iMediaPlayer -> mHandler.postDelayed(() -> courseEnd(), IntegerConstant.INTO_COURSE_END));
         mVV.start();
@@ -157,8 +157,10 @@ public class MainActivity extends AppCompatActivity {
 
         if (playType.equals(StringConstant.DEMAND_PLAY_TYPE)) {
             imageLiving.setVisibility(View.GONE);
+            viewRecord.setVisibility(View.VISIBLE);
         } else {
             imageLiving.setVisibility(View.VISIBLE);
+            viewRecord.setVisibility(View.GONE);
         }
 
         setKey();// 所有 key
@@ -617,6 +619,8 @@ public class MainActivity extends AppCompatActivity {
         Map<String, String> param = new HashMap<>();
         param.put("openId", openId);
         param.put("headId", headId);
+        param.put("storeId", String.valueOf(IntegerConstant.STORE_ID));
+        param.put("type", String.valueOf(IntegerConstant.DYNAMIC_SYSTEM_TYPE));//
 
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(Api.BASE_URL)

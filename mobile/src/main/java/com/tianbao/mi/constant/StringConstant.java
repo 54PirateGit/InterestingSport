@@ -63,9 +63,6 @@ public class StringConstant {
     // 刷新数据频率
     public final static String REFRESH_DATA_FREQUENCY = "REFRESH_DATA_FREQUENCY";
 
-    // 获取店名数据 KEY
-    public static String STORE_NAME_KEY = "STORE_NAME_KEY";
-
     // 店名
     public static String STORE_NAME = "长沙新瘾健身仓";
 

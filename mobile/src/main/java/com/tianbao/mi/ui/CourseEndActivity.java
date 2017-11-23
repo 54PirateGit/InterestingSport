@@ -58,7 +58,7 @@ public class CourseEndActivity extends Activity {
 
     private MediaPlayer mp;
 
-    private int timer = 180;
+    private int timer = 180;// 此界面停留 3 分钟
 
     private void setFront() {
         Typeface tf = Typeface.createFromAsset(getAssets(), "font/FZKTJT.ttf");
@@ -105,9 +105,9 @@ public class CourseEndActivity extends Activity {
         UploadData uploadData = (UploadData) intent.getSerializableExtra(StringConstant.UPLOAD_DATA_KEY);
         if (uploadData == null) return ;
 
-        for (int i=0; i<uploadData.getGymDataList().size(); i++) {
-            L.i("GymData", "GymData -> " + uploadData.getGymDataList().get(i).toString());
-        }
+//        for (int i=0; i<uploadData.getGymDataList().size(); i++) {
+//            L.i("GymData", "GymData -> " + uploadData.getGymDataList().get(i).toString());
+//        }
 
         requestUploadData(uploadData);
     }

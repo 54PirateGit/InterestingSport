@@ -28,6 +28,7 @@ public class MemberView extends LinearLayout {
     private TextView textSort;// 排名
     private View viewBack;// 背景
     private TextView textLevel;// 级别
+    private ImageView imageXl;// 心率
 
     private TextView textHeartRateUnit;// 心率单位
 
@@ -52,6 +53,7 @@ public class MemberView extends LinearLayout {
         textSort = findViewById(R.id.text_sort);
         viewBack = findViewById(R.id.view_background);
         textLevel = findViewById(R.id.text_level);
+        imageXl = findViewById(R.id.image_xinlv);
 
         textHeartRateUnit = findViewById(R.id.text_heart_rate_unit);
     }
@@ -88,12 +90,14 @@ public class MemberView extends LinearLayout {
         textSpeed.setText(speed);
 
         // 心率
-        if (TextUtils.isEmpty(heart) || heart.equals("--")) {// 没有获取到心率
+        if (TextUtils.isEmpty(heart) || heart.equals("--") || heart.equals("0")) {// 没有获取到心率
             textHeartRateUnit.setTextColor(getResources().getColor(R.color.gray));
             textHeartRate.setTextColor(getResources().getColor(R.color.gray));
+            imageXl.setImageDrawable(mContext.getDrawable(R.drawable.xinlv_gray));
         } else {
             textHeartRateUnit.setTextColor(getResources().getColor(R.color.white));
             textHeartRate.setTextColor(getResources().getColor(R.color.white));
+            imageXl.setImageDrawable(mContext.getDrawable(R.drawable.xinlv));
         }
         textHeartRate.setText(heart);
 

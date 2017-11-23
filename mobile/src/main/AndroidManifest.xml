@@ -50,15 +50,11 @@
         <!-- 主界面 -->
         <activity
             android:name=".ui.MainActivity"
-            android:launchMode="singleTask"
-            android:screenOrientation="landscape"
             android:theme="@style/AnimStyle"/> <!-- portrait:竖屏, landscape:横屏 -->
-
 
         <!-- 加载 -->
         <activity
             android:name=".ui.LoadActivity"
-            android:screenOrientation="landscape"
             android:theme="@style/AnimStyle"/>
 
         <!-- 登录界面 第一次打开时会跳转到这界面 -->
@@ -66,9 +62,10 @@
             android:name=".ui.LoginActivity"
             android:theme="@style/AnimStyle"/>
 
-        <!-- 没有课程信息时打开的界面 -->
+        <!-- 待机界面 -->
         <activity
             android:name=".ui.StandbyActivity"
+            android:launchMode="singleTask"
             android:theme="@style/AnimStyle"/>
 
         <!-- 课程结束跳转至此 -->

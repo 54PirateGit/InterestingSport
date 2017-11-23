@@ -39,13 +39,40 @@
                 android:background="@drawable/card_background"
                 android:orientation="vertical">
 
-                <ImageView
-                    android:id="@+id/image_qr"
-                    android:layout_width="135dp"
-                    android:layout_height="135dp"
-                    android:visibility="gone"
-                    android:layout_marginTop="20dp"
-                    android:background="@color/white"/>
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp">
+
+                    <ImageView
+                        android:id="@+id/image_qr"
+                        android:layout_width="135dp"
+                        android:layout_height="135dp"
+                        android:visibility="visible"
+                        android:layout_centerHorizontal="true"
+                        android:layout_marginTop="10dp"/>
+
+                    <ImageView
+                        android:layout_width="85dp"
+                        android:layout_height="148dp"
+                        android:layout_toLeftOf="@id/image_qr"
+                        android:src="@drawable/qr_left"/>
+
+                    <ImageView
+                        android:layout_width="85dp"
+                        android:layout_height="148dp"
+                        android:layout_toRightOf="@id/image_qr"
+                        android:src="@drawable/qr_right"/>
+
+                    <ImageView
+                        android:layout_width="135dp"
+                        android:layout_height="28dp"
+                        android:layout_below="@id/image_qr"
+                        android:src="@drawable/qr_boom"
+                        android:visibility="gone"
+                        android:layout_centerHorizontal="true"/>
+
+                </RelativeLayout>
 
                 <TextView
                     android:layout_width="wrap_content"

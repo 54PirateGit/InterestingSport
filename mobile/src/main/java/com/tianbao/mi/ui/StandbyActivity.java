@@ -23,6 +23,7 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.google.zxing.WriterException;
 import com.tianbao.mi.R;
 import com.tianbao.mi.adapter.BannerAdapter;
 import com.tianbao.mi.adapter.LiveListAdapter;
@@ -175,6 +176,7 @@ public class StandbyActivity extends Activity {
     protected void onStart() {
         super.onStart();
 
+        requestUserInfo(key);
         playSound();
         registerBroad();// 注册广播
         mHandler.post(mLoopLiveListRunnable);
@@ -211,6 +213,12 @@ public class StandbyActivity extends Activity {
             mp.release();
             mp = null;
         }
+        if (scrollList != null) {
+            scrollList.recovery();
+        }
+        if (viewPartner != null) {
+            viewPartner.recovery();
+        }
     }
 
     // 初始化视图
@@ -225,7 +233,6 @@ public class StandbyActivity extends Activity {
         textYear.setText(StringConstant.TIME_YEAR);
         initBanner();
 
-        requestUserInfo(key);
         scrollList.setAlpha(0.5f);
 
         mHandler.postDelayed(() -> requestOnDemandList(), RESTART_REQUEST_TIME);
@@ -257,7 +264,12 @@ public class StandbyActivity extends Activity {
         downList = MyApp.getDownUrl();
         viewQr.setAlpha(0.65f);
         if (downList != null && downList.size() > 0) {
-            Bitmap qrBitmap = QrUtil.generateBitmap(mContext, downList.get(0), 300, 300, true);
+            Bitmap qrBitmap = null;
+            try {
+                qrBitmap = QrUtil.makeQRImage(mContext, downList.get(0), 270, 270);
+            } catch (WriterException e) {
+                e.printStackTrace();
+            }
             if (qrBitmap != null) {
                 imageQr.setVisibility(View.VISIBLE);
                 imageQr.setImageBitmap(qrBitmap);
@@ -287,11 +299,8 @@ public class StandbyActivity extends Activity {
         }
     };
 
-    private Runnable mGetCourseInfoRunnable = new Runnable() {
-        @Override
-        public void run() {
-            if (MyApp.getCourseId() != 0) request();
-        }
+    private Runnable mGetCourseInfoRunnable = () -> {
+        if (MyApp.getCourseId() != 0) request();
     };
 
     // 没有获取到数据或获取数据失败时重复请求
@@ -388,15 +397,19 @@ public class StandbyActivity extends Activity {
                 if (code == IntegerConstant.RESULT_OK) {
                     dList = courseBean.getData();
                     if (dList == null || dList.size() <= 0) {
-                        isSelectTab = true;
-                        textLive.setBackground(getResources().getDrawable(R.drawable.tab_white_background));
-                        textDemand.setBackground(null);
+                        if (lAdapter == null && isSelectLive) {
+                            isSelectTab = true;
+                            textLive.setBackground(getResources().getDrawable(R.drawable.tab_white_background));
+                            textDemand.setBackground(null);
+                        }
                         return;
                     }
                     count1 = 0;
                     isSelectTab = false;
-                    if (dList.size() <= 3) imageMore.setVisibility(View.INVISIBLE);
-                    else imageMore.setVisibility(View.VISIBLE);
+                    if (isSelectLive) {
+                        if (dList.size() <= 3) imageMore.setVisibility(View.INVISIBLE);
+                        else imageMore.setVisibility(View.VISIBLE);
+                    }
                     if (lAdapter == null) {// 第一次进入界面时加载数据
                         lAdapter = new LiveListAdapter(mContext, dList);
                         listLive.setAdapter(lAdapter);
@@ -830,7 +843,15 @@ public class StandbyActivity extends Activity {
                         }
                     }
                 } else {// 焦点在点播列表中
-                    StringConstant.DEMAND_URL = oList.get(position).getLiveUrl();
+                    String url = oList.get(position).getLiveUrl();
+
+                    List<String> urls = new ArrayList<>();
+                    urls.add(url);
+                    StringConstant.DEMAND_URL = urls.get(0);// 防止地址被回收
+
+                    L.i("playUrl", "playUrl -> " + StringConstant.DEMAND_URL);
+
+//                    SPUtils.put(mContext, StringConstant.DEMAND_URL_KEY, url);
                     Intent intent = new Intent(StandbyActivity.this, LoadActivity.class);
                     intent.putExtra(StringConstant.PLAY_TYPE, StringConstant.DEMAND_PLAY_TYPE);
                     startActivity(intent);// 进入加载

@@ -131,9 +131,9 @@
                     android:layout_gravity="center_vertical">
 
                     <ImageView
+                        android:id="@+id/image_xinlv"
                         android:layout_width="12dp"
-                        android:layout_height="12dp"
-                        android:src="@drawable/xinlv"/>
+                        android:layout_height="12dp"/>
 
                     <TextView
                         android:id="@+id/text_heart_rate"

@@ -47,16 +47,15 @@ public class DialogUtils {
         builder.show();
     }
 
-//    /**
-//     * 提示
-//     */
-//    public static void showDialog(String content) {
-//        AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-//        builder.setTitle("提示");
-//        builder.setMessage(content);
-//        builder.setCancelable(false);
-//        builder.setNegativeButton("确定", (dialog, which) -> {
-//        });
-//        builder.show();
-//    }
+    /**
+     * 提示
+     */
+    public static void showDialogFinish(Activity context, String content) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle("提示");
+        builder.setMessage(content);
+        builder.setCancelable(false);
+        builder.setNegativeButton("确定", (dialog, which) -> context.finish());
+        builder.show();
+    }
 }
