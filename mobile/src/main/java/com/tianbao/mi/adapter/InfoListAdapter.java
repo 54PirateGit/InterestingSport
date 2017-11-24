@@ -10,8 +10,14 @@ import android.widget.TextView;
 import com.tianbao.mi.R;
 import com.tianbao.mi.bean.InformationBean;
 import com.tianbao.mi.constant.IntegerConstant;
+import com.tianbao.mi.utils.SendBroadUtil;
 
 import java.util.List;
+
+import static com.tianbao.mi.constant.IntegerConstant.SOUND_WARM;
+import static com.tianbao.mi.constant.IntegerConstant.SOUND_YES;
+import static com.tianbao.mi.constant.IntegerConstant.VIEW_TYPE_SORT;
+import static com.tianbao.mi.constant.IntegerConstant.VIEW_TYPE_TIP;
 
 /**
  * PartnerListAdapter
@@ -26,6 +32,12 @@ public class InfoListAdapter extends BaseAdapter {
     public InfoListAdapter(Context context, List<InformationBean> list) {
         this.mContext = context;
         this.mList = list;
+
+        if (mList.get(mList.size() - 1).getType() == VIEW_TYPE_SORT) {// 排名
+            SendBroadUtil.sendPlayToService(mContext, SOUND_YES);
+        } else if (mList.get(mList.size() - 1).getType() == VIEW_TYPE_TIP) {// 警告
+            SendBroadUtil.sendPlayToService(mContext, SOUND_WARM);
+        }
     }
 
     public void setList(List<InformationBean> list) {
@@ -58,7 +70,7 @@ public class InfoListAdapter extends BaseAdapter {
 
     @Override
     public int getItemViewType(int position) {
-        if (mList.get(position).getType() == IntegerConstant.VIEW_TYPE_SORT) return IntegerConstant.VIEW_TYPE_SORT;
+        if (mList.get(position).getType() == VIEW_TYPE_SORT) return VIEW_TYPE_SORT;
         else return IntegerConstant.VIEW_TYPE_TIP;
     }
 
@@ -68,7 +80,7 @@ public class InfoListAdapter extends BaseAdapter {
         int type = getItemViewType(position);
         if (convertView == null) {
             if (mLayoutInflater == null) mLayoutInflater = LayoutInflater.from(mContext);
-            if (type == IntegerConstant.VIEW_TYPE_SORT) {
+            if (type == VIEW_TYPE_SORT) {
                 viewHolder = new ViewHolder();
                 convertView = mLayoutInflater.inflate(R.layout.item_sort, parent, false);
                 viewHolder.textSortName1 = convertView.findViewById(R.id.text_sort_1);
@@ -83,7 +95,7 @@ public class InfoListAdapter extends BaseAdapter {
                 convertView.setTag(viewHolder);
             }
         } else {
-            if (type == IntegerConstant.VIEW_TYPE_SORT) {
+            if (type == VIEW_TYPE_SORT) {
                 viewHolder = (ViewHolder) convertView.getTag();
             } else {
                 viewHolder = (ViewHolder) convertView.getTag();
@@ -92,7 +104,7 @@ public class InfoListAdapter extends BaseAdapter {
 
         InformationBean bean = mList.get(position);
 
-        if (type == IntegerConstant.VIEW_TYPE_SORT) {
+        if (type == VIEW_TYPE_SORT) {
             List<InformationBean.SortBean> sortBeen = bean.getSortList();
             for (int i=0; i<sortBeen.size(); i++) {
                 if (sortBeen.get(i).getSort() == 1) {

@@ -22,6 +22,7 @@ import com.tianbao.mi.net.Api;
 import com.tianbao.mi.net.ApiService;
 import com.tianbao.mi.utils.BitmapUtils;
 import com.tianbao.mi.utils.DialogUtils;
+import com.tianbao.mi.utils.SendBroadUtil;
 import com.tianbao.mi.utils.SoundPlayUtils;
 
 import java.util.HashMap;
@@ -36,7 +37,10 @@ import retrofit.GsonConverterFactory;
 import retrofit.Response;
 import retrofit.Retrofit;
 
+import static com.tianbao.mi.constant.ConfigConstant.DEVICE_ID;
 import static com.tianbao.mi.constant.IntegerConstant.RESTART_REQUEST_TIME;
+import static com.tianbao.mi.constant.IntegerConstant.SOUND_START_COURSE;
+import static com.tianbao.mi.constant.IntegerConstant.SOUND_START_LOAD;
 
 /**
  * 加载界面
@@ -82,7 +86,8 @@ public class LoadActivity extends Activity {
         playType = intent.getStringExtra(StringConstant.PLAY_TYPE);
         url = intent.getStringExtra(StringConstant.PLAY_URL);
 
-        SoundPlayUtils.play(IntegerConstant.SOUND_START_LOAD);// 播放背景音乐
+        SendBroadUtil.sendPlayToService(mContext, SOUND_START_LOAD);
+//        SoundPlayUtils.play(SOUND_START_LOAD);// 播放背景音乐
     }
 
     // 初始化视图
@@ -122,7 +127,8 @@ public class LoadActivity extends Activity {
                     }
                 } else if (i == 100) {
                     if (MyApp.verification()) {// 时间验证通过
-                        SoundPlayUtils.play(IntegerConstant.SOUND_START_COURSE);
+//                        SoundPlayUtils.play(SOUND_START_COURSE);
+                        SendBroadUtil.sendPlayToService(mContext, SOUND_START_COURSE);
 
                         // 跳转到主界面将数据展示
                         Intent intentToMain = new Intent(mContext, MainActivity.class);
@@ -150,7 +156,7 @@ public class LoadActivity extends Activity {
     // 获取配置信息
     private void requestApp() {
         Map<String, String> param = new HashMap<>();
-        param.put("deviceId", StringConstant.DEVICE_ID);
+        param.put("deviceId", DEVICE_ID);
 
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(Api.BASE_URL)
@@ -165,7 +171,7 @@ public class LoadActivity extends Activity {
                 if (bean != null) {
                     int code = bean.getCode();
                     if (code == IntegerConstant.RESULT_OK) {
-                        SoundPlayUtils.play(IntegerConstant.SOUND_START_COURSE);
+                        SoundPlayUtils.play(SOUND_START_COURSE);
 
                         // 跳转到主界面将数据展示
                         Intent intentToMain = new Intent(mContext, MainActivity.class);

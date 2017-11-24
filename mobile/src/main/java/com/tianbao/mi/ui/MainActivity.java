@@ -16,23 +16,18 @@ import android.widget.RelativeLayout;
 
 import com.tianbao.mi.R;
 import com.tianbao.mi.app.MyApp;
-import com.tianbao.mi.bean.BuildBean;
 import com.tianbao.mi.bean.CourseInfoBean;
-import com.tianbao.mi.bean.CurrencyBean;
 import com.tianbao.mi.bean.FitUser;
 import com.tianbao.mi.bean.GymData;
 import com.tianbao.mi.bean.InformationBean;
-import com.tianbao.mi.bean.RecordBean;
 import com.tianbao.mi.bean.UploadData;
-import com.tianbao.mi.bean.UploadDataBean;
-import com.tianbao.mi.bean.UserHeart;
 import com.tianbao.mi.constant.IntegerConstant;
+import com.tianbao.mi.constant.IntentConstant;
 import com.tianbao.mi.constant.StringConstant;
 import com.tianbao.mi.net.Api;
 import com.tianbao.mi.net.ApiService;
 import com.tianbao.mi.utils.L;
 import com.tianbao.mi.utils.QrUtil;
-import com.tianbao.mi.utils.SPUtils;
 import com.tianbao.mi.utils.SoundPlayUtils;
 import com.tianbao.mi.utils.T;
 import com.tianbao.mi.widget.AutoScrollListView;
@@ -54,6 +49,12 @@ import retrofit.Callback;
 import retrofit.GsonConverterFactory;
 import retrofit.Response;
 import retrofit.Retrofit;
+
+import static com.tianbao.mi.constant.ReceiverConstant.BROAD_BINDING_UPDATE;
+import static com.tianbao.mi.constant.ReceiverConstant.BROAD_END_COURSE;
+import static com.tianbao.mi.constant.ReceiverConstant.BROAD_TO_SERVICE_BINDING_UPDATE;
+import static com.tianbao.mi.constant.ReceiverConstant.BROAD_UPDATE_DATA;
+import static com.tianbao.mi.constant.StringConstant.BUILD_UPDATE_KEY;
 
 /**
  * 动感单车数据展示界面
@@ -96,11 +97,8 @@ public class MainActivity extends AppCompatActivity {
     private Handler mHandler = new Handler();// 处理线程
 
     private List<InformationBean> iList = new ArrayList<>();
-    //    private List<UserDataBean> mList;// 保存用户数据
     private List<FitUser> mList;// 保存用户数据
     private List<MemberView> vList = new ArrayList<>();// 保存 View
-    private List<String> dKey = new ArrayList<>();// key
-    private List<UserHeart> mDataList = new ArrayList<>();
 
     private boolean isFront = true;// 标记此时在前在后
     private String playType;// 标识  点播 or 直播
@@ -110,8 +108,7 @@ public class MainActivity extends AppCompatActivity {
     // 注册广播
     private void registerBroad() {
         IntentFilter filter = new IntentFilter();
-        filter.addAction(StringConstant.BROAD_BUILD_UPDATE);
-        filter.addAction(StringConstant.BROAD_END_COURSE);
+        filter.addAction(BROAD_END_COURSE);
         registerReceiver(mReceiver, filter);
     }
 
@@ -130,17 +127,6 @@ public class MainActivity extends AppCompatActivity {
         mVV.setVideoScalingMode(BDCloudVideoView.VIDEO_SCALING_MODE_SCALE_TO_FIT);
         mVV.setOnCompletionListener(iMediaPlayer -> mHandler.postDelayed(() -> courseEnd(), IntegerConstant.INTO_COURSE_END));
         mVV.start();
-    }
-
-    private List<String> key = new ArrayList<>();// 获取所有用户绑定数据需要
-
-    private void setKey() {
-        int storeId = (int) SPUtils.get(mContext, StringConstant.STORE_ID_SP_KEY, 1);
-        String kString;
-        for (int i = 0; i < 30; i++) {
-            kString = storeId + "_" + i;
-            key.add(kString);
-        }
     }
 
     @Override
@@ -162,8 +148,6 @@ public class MainActivity extends AppCompatActivity {
             imageLiving.setVisibility(View.VISIBLE);
             viewRecord.setVisibility(View.GONE);
         }
-
-        setKey();// 所有 key
 
         initPlayer();// 初始化播放器
         initView();
@@ -196,8 +180,6 @@ public class MainActivity extends AppCompatActivity {
     private void initView() {
         viewInfo.setAlpha(0.5f);
 
-        mHandler.postDelayed(mLoopUserDataRunnable, IntegerConstant.REFRESH_DATA_FREQUENCY);// 隔一定时间去获取用户数据
-        mHandler.post(mLoopUserRelaRunnable);// 隔一定时间去获取用户绑定关系
         mHandler.postDelayed(mLoopSort, IntegerConstant.SORT_FREQUENCY);// 隔一定时间去根据用户数据排序
         mHandler.postDelayed(mChangeViewRunnable, IntegerConstant.FRONT_BACK_DATA_CHANGE_FIRST);// 前后面交换数据
     }
@@ -226,24 +208,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // 轮询去获取用户数据
-    private Runnable mLoopUserDataRunnable = new Runnable() {
-        @Override
-        public void run() {
-            requestUserData();
-            mHandler.postDelayed(this, IntegerConstant.REFRESH_DATA_FREQUENCY);
-        }
-    };
-
-    // 轮询去获取用户关系
-    private Runnable mLoopUserRelaRunnable = new Runnable() {
-        @Override
-        public void run() {
-            requestUserInfo();
-            mHandler.postDelayed(this, IntegerConstant.REFRESH_RELATION__FREQUENCY);
-        }
-    };
-
     // 轮询去根据用户数据排序
     private Runnable mLoopSort = new Runnable() {
         @Override
@@ -258,97 +222,25 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            if (action.equals(StringConstant.BROAD_BUILD_UPDATE)) {// 有新的用户绑定关系需要处理
-                requestUserInfo();
-            } else if (action.equals(StringConstant.BROAD_END_COURSE)) {// 课程结束
+           if (action.equals(BROAD_END_COURSE)) {// 课程结束
                 if (playType.equals(StringConstant.LIVE_PLAY_TYPE)) {
                     courseEnd();
                 }
-            }
+            } else if (action.equals(BROAD_UPDATE_DATA)) {// 请更新数据
+                mList = (List<FitUser>) intent.getSerializableExtra(IntentConstant.USER_DATA);
+               updateDataToView();
+            } else if (action.equals(BROAD_BINDING_UPDATE)) {// 有新的用户关系
+               String uuid = intent.getStringExtra(BUILD_UPDATE_KEY);
+               Intent intentUpdate = new Intent();
+               intentUpdate.setAction(BROAD_TO_SERVICE_BINDING_UPDATE);
+               intentUpdate.putExtra(BUILD_UPDATE_KEY, uuid);
+               sendBroadcast(intentUpdate);
+           }
         }
     };
 
-    private Map<String, Map<String, String>> dMap = new HashMap<>();// 用户数据
-    private Map<String, Map<String, String>> rMap = new HashMap<>();// 用户绑定关系
-
-    // 网络请求获取网络数据  获取用户数据
-    private void requestUserData() {
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(Api.BASE_URL_PI)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-
-        ApiService service = retrofit.create(ApiService.class);
-        Call<RecordBean> model = service.requestRecord();
-        model.enqueue(new Callback<RecordBean>() {
-            @Override
-            public void onResponse(Response<RecordBean> response, Retrofit retrofit) {
-                if (isCancelRequest) return;
-                RecordBean recordBean = response.body();
-                int code = recordBean.getCode();
-                if (code == IntegerConstant.RESULT_OK) {
-                    dMap = recordBean.getData();
-                    List<String> tempList = new ArrayList<>();
-                    for (Map.Entry<String, Map<String, String>> entry : dMap.entrySet()) {
-                        tempList.add(entry.getKey());
-                    }
-                    assemblyData(tempList);
-                } else {
-                    L.w("LoadFail", "requestUserData 加载失败，等待重新加载");
-                }
-            }
-
-            @Override
-            public void onFailure(Throwable t) {
-                L.w("LoadFail", "requestUserData 连接服务器失败");
-            }
-        });
-    }
-
-    // 组装用户数据
-    private void assemblyData(List<String> tList) {
-        for (String key : tList) {
-            if (!dKey.contains(key)) {// 有新的数据
-                dKey.add(key);
-                FitUser bean = FitUser.build();
-                bean.setKey(key);// 将 key 先加入  key 是识别用户数据与用户绑定关系的唯一标识
-                bean.setSort(0);
-                if (mList == null) mList = new ArrayList<>();
-                mList.add(bean);
-            }
-        }
-        for (String key : dKey) {
-            for (int i = 0; i < mList.size(); i++) {
-                if (key.equals(mList.get(i).getKey())) {
-                    FitUser bean = mList.get(i);
-                    Map<String, String> dData = dMap.get(key);
-                    Map<String, String> rData = rMap.get(key);
-                    LocalDateTime now = new LocalDateTime();
-                    bean = setFitUserData(bean, dData, rData, now);
-                    bean.getFitInfo().cal4Cycle(IntegerConstant.GIRTH, bean, now);
-
-                    if (bean.isNotOnline()) {// 已经掉线
-                        String openId = bean.getOpenId();
-                        String headId = bean.getKey();
-                        requestUnbinding(openId, headId);// 将此信息发送到后台
-                    }
-                    break;
-                }
-            }
-        }
-
-        if (mDataList != null && mDataList.size() > 0) {
-            for (int i=0; i<mDataList.size(); i++) {
-                if (mDataList.get(i).getHeart() == 0) {
-                    mDataList.remove(i);
-                }
-            }
-
-            if (mDataList.size() > 0) {
-                requestUploadUser();
-            }
-        }
-
+    // 根据最新数据更新界面
+    private void updateDataToView() {
         // 先移除全部视图
         if (viewLeftFront != null) viewLeftFront.removeAllViews();
         if (viewRightFront != null) viewRightFront.removeAllViews();
@@ -385,7 +277,8 @@ public class MainActivity extends AppCompatActivity {
             FitUser bean = mList.get(i);
             int level = bean.getHearRateLevel();
             if (level == 5) {// 心率范围在 5 档的位置需要提示用户
-                String name = bean.getNick();
+                String name = bean.getNick(true);
+                if (name.equals(StringConstant.NO_LONGER_PROMPTED)) continue;// 跳过
 
                 InformationBean iBean = new InformationBean();
                 iBean.setType(IntegerConstant.VIEW_TYPE_TIP);
@@ -398,7 +291,6 @@ public class MainActivity extends AppCompatActivity {
                     iList.add(iBean);
                     autoScrollListView.setInfoList(iList);
                 }
-                SoundPlayUtils.play(IntegerConstant.SOUND_WARM);
             }
         }
     }
@@ -423,7 +315,7 @@ public class MainActivity extends AppCompatActivity {
             if (key.equals(resultList.get(0))) {
                 mList.get(i).setSort(1);
 
-                String name = mList.get(i).getNick();
+                String name = mList.get(i).getNick(false);
                 if (TextUtils.isEmpty(name)) name = "用户_" + key.split("_")[1];
                 sortBean = new InformationBean.SortBean();
                 sortBean.setSort(1);
@@ -432,7 +324,7 @@ public class MainActivity extends AppCompatActivity {
             } else if (mList.get(i).getKey().equals(resultList.get(1))) {
                 mList.get(i).setSort(2);
 
-                String name = mList.get(i).getNick();
+                String name = mList.get(i).getNick(false);
                 if (TextUtils.isEmpty(name)) name = "用户_" + key.split("_")[1];
                 sortBean = new InformationBean.SortBean();
                 sortBean.setSort(2);
@@ -441,7 +333,7 @@ public class MainActivity extends AppCompatActivity {
             } else if (mList.get(i).getKey().equals(resultList.get(2))) {
                 mList.get(i).setSort(3);
 
-                String name = mList.get(i).getNick();
+                String name = mList.get(i).getNick(false);
                 if (TextUtils.isEmpty(name)) name = "用户_" + key.split("_")[1];
                 sortBean = new InformationBean.SortBean();
                 sortBean.setSort(3);
@@ -450,7 +342,6 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 mList.get(i).setSort(0);
             }
-            SoundPlayUtils.play(IntegerConstant.SOUND_YES);
         }
 
         iBean.setSortList(sList);
@@ -504,67 +395,6 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    // 没有获取到数据或获取数据失败时重复获取数据
-    private int count = 0;
-    private Runnable reStartRequestRunnable = () -> {
-        if (count < IntegerConstant.RESTART_REQUEST_COUNT) {
-            requestUserInfo();
-            count++;
-        }
-    };
-
-    // 获取用户的绑定关系
-    private void requestUserInfo() {
-        Map<String, List<String>> param = new HashMap<>();
-        param.put("headIds", key);// 获取全部
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(Api.BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-        ApiService service = retrofit.create(ApiService.class);
-        Call<BuildBean> model = service.getBuild(param);
-        model.enqueue(new Callback<BuildBean>() {
-            @Override
-            public void onResponse(Response<BuildBean> response, Retrofit retrofit) {
-                if (isCancelRequest) return;
-                BuildBean buildBean = response.body();
-                int code = buildBean.getCode();
-                if (IntegerConstant.RESULT_OK == code) {
-                    if (mHandler != null && reStartRequestRunnable != null) {
-                        mHandler.removeCallbacks(reStartRequestRunnable);
-                    }
-                    rMap = buildBean.getData();
-                    List<String> tempList = new ArrayList<>();
-                    for (Map.Entry<String, Map<String, String>> entry : rMap.entrySet()) {
-                        tempList.add(entry.getKey());
-
-                        Map<String, String> map = entry.getValue();
-                        String restingHeart = map.get(StringConstant.KEY_RESTING_HEART);
-                        if (TextUtils.isEmpty(restingHeart) || restingHeart.equals("NaN")
-                                || restingHeart.equals("0") || restingHeart.equals("null") || restingHeart.equals("NULL")) {
-                            UserHeart userHeart = new UserHeart();
-                            String userId = map.get(StringConstant.KEY_USER_ID);
-                            if (!TextUtils.isEmpty(userId)) {
-                                userHeart.setUserId(Integer.valueOf(userId));
-                                mDataList.add(userHeart);
-                            }
-                        }
-                    }
-                    assemblyData(tempList);
-                } else {
-                    mHandler.postDelayed(reStartRequestRunnable, IntegerConstant.RESTART_REQUEST_TIME);
-                    L.w("requestUserInfo", "没有获取到用户绑定数据或没有用户绑定数据");
-                }
-            }
-
-            @Override
-            public void onFailure(Throwable t) {
-                mHandler.postDelayed(reStartRequestRunnable, IntegerConstant.RESTART_REQUEST_TIME);
-                L.w("requestUserInfo", "连接服务器失败");
-            }
-        });
-    }
-
     // 获取课程信息
     private void requestCourseStatus() {
         Map<String, String> param = new HashMap<>();
@@ -614,39 +444,6 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    // 当接收的数据在 5 分钟以上都为空时调用此接口
-    private void requestUnbinding(String openId, String headId) {
-        Map<String, String> param = new HashMap<>();
-        param.put("openId", openId);
-        param.put("headId", headId);
-        param.put("storeId", String.valueOf(IntegerConstant.STORE_ID));
-        param.put("type", String.valueOf(IntegerConstant.DYNAMIC_SYSTEM_TYPE));//
-
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(Api.BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-
-        ApiService service = retrofit.create(ApiService.class);
-        Call<CurrencyBean> model = service.unbinding(param);
-        model.enqueue(new Callback<CurrencyBean>() {
-            @Override
-            public void onResponse(Response<CurrencyBean> response, Retrofit retrofit) {
-                if (isCancelRequest) return;
-                CurrencyBean bean = response.body();
-                if (bean == null) return;
-                int code = bean.getCode();
-                if (code == IntegerConstant.RESULT_OK) {
-                    L.d("requestUnbinding success");
-                }
-            }
-
-            @Override
-            public void onFailure(Throwable t) {
-            }
-        });
-    }
-
     // 课程结束
     private void courseEnd() {
         SoundPlayUtils.play(IntegerConstant.SOUND_COURSE_END);
@@ -660,44 +457,6 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);// 跳转到课程结束界面
         finish();
     }
-
-    // 上传用户心率
-    private void requestUploadUser() {
-        UploadData uploadData = new UploadData();
-        uploadData.setUserHeartList(mDataList);
-
-        Retrofit retrofit = new Retrofit.Builder()
-//                .baseUrl("http://192.168.1.111:8080")
-                .baseUrl(Api.BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-
-        ApiService service = retrofit.create(ApiService.class);
-        Call<UploadDataBean> model = service.addHeart(uploadData);
-
-        L.i("uploadData", "uploadData -> " + uploadData.toString());
-
-        model.enqueue(new Callback<UploadDataBean>() {
-            @Override
-            public void onResponse(Response<UploadDataBean> response, Retrofit retrofit) {
-                UploadDataBean bean = response.body();
-                int code = bean.getCode();
-                if (code == IntegerConstant.RESULT_OK) {
-                    L.i("mDataList", "数据上传成功");
-                    mDataList.clear();
-
-                } else {
-                    L.i("mDataList", "数据上传失败");
-                }
-            }
-
-            @Override
-            public void onFailure(Throwable t) {
-                T.connectFailTip(mContext);
-            }
-        });
-    }
-
 
     // 需要上传的用户数据
     private List<GymData> uploadData() {
@@ -766,56 +525,6 @@ public class MainActivity extends AppCompatActivity {
         viewRightBack.setAlpha(!isFront);
     }
 
-    // 设置用户数据
-    private FitUser setFitUserData(FitUser user, Map<String, String> data1, Map<String, String> data2, LocalDateTime now) {
-        if (data1 == null) data1 = new HashMap<>();
-        if (data2 == null) data2 = new HashMap<>();
-        if (user == null) user = FitUser.build();
-
-        String openId = data2.get(StringConstant.KEY_OPEN_ID);// openId
-        String userId = data2.get(StringConstant.KEY_USER_ID);// 用户 id
-        String avatar = data2.get(StringConstant.KEY_AVATAR);//头像
-        String nick = data2.get(StringConstant.KEY_NICK);// 昵称
-        String sex = data2.get(StringConstant.KEY_SEX);// 性别
-        String birthday = data2.get(StringConstant.KEY_BIRTHDAY);// 生日 用于计算当前年龄
-        String weight = data2.get(StringConstant.KEY_WEIGHT);// 体重
-        String height = data2.get(StringConstant.KEY_HEIGHT);// 身高
-        String restingHeart = data2.get(StringConstant.KEY_RESTING_HEART);// 安静时心率
-
-        String heartRate = data1.get(StringConstant.KEY_HEART_RATE);// 心率
-        String cadence = data1.get(StringConstant.KEY_CADENCE);// 踏频
-        String interval4Cadence = data1.get(StringConstant.KEY_INTERVAL_CADENCE);// 踏频间隔时间
-
-        if (!TextUtils.isEmpty(userId) && !userId.equals("NaN") && !userId.equals("null")) {
-            if (mDataList != null && mDataList.size() > 0) {
-                for (int i=0; i<mDataList.size(); i++) {
-                    UserHeart userHeart = mDataList.get(i);
-                    if (userHeart.getUserId() == Integer.valueOf(userId)) {
-                        if (TextUtils.isEmpty(heartRate) || heartRate.equals("NaN")) {
-                            heartRate = "0";
-                        }
-                        userHeart.setHeart(Integer.valueOf(heartRate));
-                        break;
-                    }
-                }
-            }
-        }
-
-        user.setOpenId(openId)
-                .setUserId(userId)
-                .setAvatar(avatar)
-                .setNick(nick)
-                .setSex(sex)
-                .setHeartRate(heartRate)
-                .setAge(birthday, now)
-                .setWeight(weight)
-                .setHeight(height)
-                .setHRrest(restingHeart)
-                .setCadence(cadence)
-                .setInterval4Cadence(interval4Cadence);
-        return user;
-    }
-
     private long time;// 保存点击返回键的时间
 
     @Override
@@ -848,16 +557,6 @@ public class MainActivity extends AppCompatActivity {
             mVV = null;
         }
 
-        if (mLoopUserDataRunnable != null) {
-            mHandler.removeCallbacks(mLoopUserDataRunnable);
-            mLoopUserDataRunnable = null;
-        }
-
-        if (mLoopUserRelaRunnable != null) {
-            mHandler.removeCallbacks(mLoopUserRelaRunnable);
-            mLoopUserRelaRunnable = null;
-        }
-
         if (mLoopSort != null) {
             mHandler.removeCallbacks(mLoopSort);
             mLoopSort = null;
@@ -868,11 +567,6 @@ public class MainActivity extends AppCompatActivity {
             mChangeViewRunnable = null;
         }
 
-        if (reStartRequestRunnable != null) {
-            mHandler.removeCallbacks(reStartRequestRunnable);
-            reStartRequestRunnable = null;
-        }
-
         if (mList != null) {
             mList.clear();
             mList = null;
@@ -881,11 +575,6 @@ public class MainActivity extends AppCompatActivity {
         if (vList != null) {
             vList.clear();
             vList = null;
-        }
-
-        if (dKey != null) {
-            dKey.clear();
-            dKey = null;
         }
 
         viewLeftFront = null;

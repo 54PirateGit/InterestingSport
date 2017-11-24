@@ -74,7 +74,10 @@ public class IntegerConstant {
     public final static long FRONT_BACK_DATA_CHANGE = 5 * 1000L;
 
     // 延时滚动时间
-    public final static long DELAY_TIME = 5 * 1000L;
+    public final static long TIP_DELAY_TIME = 15 * 1000L;
+
+    // 延时滚动时间
+    public final static long JOIN_DELAY_TIME = 5 * 1000L;
 
     // 延时滚动时间
     public final static long AUTO_ANIM_TIME = 1000L;
@@ -138,4 +141,22 @@ public class IntegerConstant {
 
     // 待机页瘾伙伴一组展示人数
     public static int STANDBY_YIN_NUMBER = 7;
+
+    // 待机页播放声音
+    public static int STANDBY_SOUND_ID = 0x999;
+
+    // 课程结束播放声音
+    public static int COURSE_END_SOUND_ID = 0x888;
+
+    // cadence
+    public static int TYPE_CADENCE = 1;
+
+    // BRACELET
+    public static int TYPE_BRACELET = 2;
+
+    // armlet
+    public static int TYPE_ARMLET = 3;
+
+    // belt
+    public static int TYPE_BELT = 4;
 }

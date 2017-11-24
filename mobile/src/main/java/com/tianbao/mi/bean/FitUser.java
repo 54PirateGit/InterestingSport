@@ -2,6 +2,8 @@ package com.tianbao.mi.bean;
 
 import android.text.TextUtils;
 
+import com.tianbao.mi.constant.StringConstant;
+
 import org.joda.time.DateTime;
 import org.joda.time.Days;
 import org.joda.time.LocalDateTime;
@@ -9,13 +11,14 @@ import org.joda.time.Seconds;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
+import java.io.Serializable;
 import java.text.NumberFormat;
 
 /**
  * FitUser
  * Created by edianzu on 2017/11/20.
  */
-public class FitUser {
+public class FitUser implements Serializable {
 
     private FitUser() {
 
@@ -156,6 +159,63 @@ public class FitUser {
      **/
     private int heartRate;
 
+    /**
+     * 提示次数
+     */
+    private int count = 0;
+
+    /**
+     * 单车 uuid
+     */
+    private String bUUID;
+
+    /**
+     * 心率设备 uuid
+     */
+    private String hUUID;
+
+    public String getbUUID() {
+        return bUUID;
+    }
+
+    public void setbUUID(String bUUID) {
+        this.bUUID = bUUID;
+    }
+
+    public String gethUUID() {
+        return hUUID;
+    }
+
+    public void sethUUID(String hUUID) {
+        this.hUUID = hUUID;
+    }
+
+    public String getbSupplierId() {
+        return bSupplierId;
+    }
+
+    public void setbSupplierId(String bSupplierId) {
+        this.bSupplierId = bSupplierId;
+    }
+
+    public String gethSupplierId() {
+        return hSupplierId;
+    }
+
+    public void sethSupplierId(String hSupplierId) {
+        this.hSupplierId = hSupplierId;
+    }
+
+    /**
+     * 单车厂商 id
+     */
+    private String bSupplierId;
+
+    /**
+     * 心率设备厂商 id
+     */
+    private String hSupplierId;
+
     public FitInfo getFitInfo() {
         return fitInfo;
     }
@@ -240,8 +300,12 @@ public class FitUser {
     /**
      * 获取用户昵称
      */
-    public String getNick() {
-        return this.nick;
+    public String getNick(boolean isTip) {
+        if (isTip && count < 3) {
+            count++;
+        }
+        if (isTip && count >= 3) return StringConstant.NO_LONGER_PROMPTED;
+        else return this.nick;
     }
 
     /**
@@ -267,6 +331,14 @@ public class FitUser {
             userId = "0";
         }
         this.userId = Integer.valueOf(userId);
+        return this;
+    }
+
+    /**
+     * userId
+     */
+    public FitUser setUserId(int userId) {
+        this.userId = userId;
         return this;
     }
 

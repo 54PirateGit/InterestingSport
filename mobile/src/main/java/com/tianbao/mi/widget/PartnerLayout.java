@@ -10,9 +10,12 @@ import android.view.View;
 import android.widget.LinearLayout;
 
 import com.tianbao.mi.constant.IntegerConstant;
+import com.tianbao.mi.utils.SendBroadUtil;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.tianbao.mi.constant.IntegerConstant.SOUND_PARTNER_JOIN;
 
 /**
  * 自动排版 View
@@ -20,18 +23,24 @@ import java.util.List;
  */
 public class PartnerLayout extends LinearLayout {
 
+    private Context mContext;
+
     private Handler mHandler = new Handler();
     private List<PartnerView> vList;
     private List<PartnerView> tList;
     private boolean isLoop;
     private int position = 0;// 当前所在位置
 
+    private boolean isPlaySound;
+
     public PartnerLayout(Context context) {
         super(context);
+        mContext = context;
     }
 
     public PartnerLayout(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
+        mContext = context;
     }
 
     // 循环展示
@@ -57,7 +66,7 @@ public class PartnerLayout extends LinearLayout {
                             if (tList.size() == IntegerConstant.STANDBY_YIN_NUMBER) break;
                             tList.add(vList.get(position));
                         }
-                        if (tList.size() < IntegerConstant.STANDBY_YIN_NUMBER) position = 0;
+                        if (tList.size() < IntegerConstant.STANDBY_YIN_NUMBER || position >= vList.size()) position = 0;// 循环一轮
                         for (int i=0; i<tList.size(); i++) addView(tList.get(i));
                         for (int i=0; i<getChildCount(); i++) animBack(getChildAt(i));
                         invalidate();
@@ -75,14 +84,20 @@ public class PartnerLayout extends LinearLayout {
                     invalidate();
                 }
             }
+
+            if (isPlaySound) {
+                isPlaySound = false;
+                SendBroadUtil.sendPlayToService(mContext, SOUND_PARTNER_JOIN);
+            }
             mHandler.postDelayed(this, IntegerConstant.AUTO_SCROLL_TIME);
         }
     };
 
-    // 有心的瘾伙伴加入
+    // 有新的瘾伙伴加入
     public void setPartnerView(PartnerView view) {
         if (vList == null) vList = new ArrayList<>();
         vList.add(view);
+        isPlaySound = true;
 
         if (!isLoop) {
             mHandler.post(mLoopListRunnable);
@@ -109,7 +124,7 @@ public class PartnerLayout extends LinearLayout {
         set1.start();
     }
 
-    // 处于前面的 View 执行的动画
+    // 处于后面的 View 执行的动画
     private void animBack(View view) {
         ObjectAnimator objectAnimator = ObjectAnimator.ofFloat(view, "alpha", 0f, 0.5f);
         AnimatorSet set = new AnimatorSet();

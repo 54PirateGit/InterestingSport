@@ -4,11 +4,13 @@ import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.Application;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Process;
 
 import com.tianbao.mi.constant.StringConstant;
+import com.tianbao.mi.service.BackstageService;
 import com.tianbao.mi.utils.DateUtils;
 import com.tianbao.mi.utils.DevicesUtils;
 import com.tianbao.mi.utils.L;
@@ -24,8 +26,10 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
-import static com.tianbao.mi.constant.StringConstant.APP_ID;
-import static com.tianbao.mi.constant.StringConstant.APP_KEY;
+import static com.tianbao.mi.constant.ConfigConstant.APP_ID;
+import static com.tianbao.mi.constant.ConfigConstant.APP_KEY;
+import static com.tianbao.mi.constant.ConfigConstant.BD_PLAYER_APP_KEY;
+import static com.tianbao.mi.constant.ConfigConstant.DEVICE_ID;
 
 /**
  * App
@@ -103,21 +107,24 @@ public class MyApp extends Application {
         super.onCreate();
         mContext = this;
 
+        // 启动服务
+        startService(new Intent(mContext, BackstageService.class));
+
         // 注册 Activity 管理监听
         registerActivityListener();
         setTimeYear();
 
         SoundPlayUtils.init(mContext);// 初始化背景音乐播放器
 
-        StringConstant.DEVICE_ID = DevicesUtils.getUniqueID(mContext);
-        L.d("DEVICES", "DEVICES == " + StringConstant.DEVICE_ID);
-        if ( StringConstant.DEVICE_ID.equals("-1")) {
+        DEVICE_ID = DevicesUtils.getUniqueID(mContext);
+        L.d("DEVICES", "DEVICES == " + DEVICE_ID);
+        if ( DEVICE_ID.equals("-1")) {
             L.w("devicesId error");
         }
 
         if (shouldInit()) MiPushClient.registerPush(mContext, APP_ID, APP_KEY);// 注册小米推送
 
-        BDCloudVideoView.setAK(StringConstant.BD_PLAYER_APP_KEY);// 百度播放器 appKey
+        BDCloudVideoView.setAK(BD_PLAYER_APP_KEY);// 百度播放器 appKey
     }
 
     public static Context getContext() {
@@ -195,6 +202,7 @@ public class MyApp extends Application {
     public static void appExit() {
         try {
             L.e("app exit");
+            mContext.stopService(new Intent(mContext, BackstageService.class));// 关闭服务
             finishAllActivity();
             android.os.Process.killProcess(android.os.Process.myPid());
             System.exit(0);

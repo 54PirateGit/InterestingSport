@@ -19,7 +19,10 @@ public class Api {
     public final static String RECORD = "/business/record";
 
     // 获取用户与车的绑定关系信息
-    public final static String GET_BUILD = "/api/pi/getBinding";
+    public final static String GET_BINDING = "/api/pi/getBinding";
+
+    // 获取全部用户与车的绑定关系信息
+    public final static String GET_BINDINGS = "/api/pi/getBindings";
 
     // 第一次打开应用需要登录
     public final static String LOGIN = "/api/pi/login";

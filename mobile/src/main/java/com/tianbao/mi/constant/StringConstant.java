@@ -15,53 +15,11 @@ public class StringConstant {
     // 保存在手机数据类型  店面标识
     public final static String STORE_ID_SP_KEY = "STORE_ID_SP_KEY";
 
-    // DeviceId
-    public static String DEVICE_ID = "1";
-
-    // 小米推送注册时返回的 ID
-    public static String REG_ID = "";
-
-    // 小米推送 appId
-    public final static String APP_ID = "2882303761517632382";
-
-    // 小米推送 key
-    public final static String APP_KEY = "5991763280382";
-
-    // 百度播放器 appKey
-    public final static String BD_PLAYER_APP_KEY = "69b1b40147d341139b2493957a411ae9";
-
-    // 用户数据有新的绑定关系
-    public final static String BUILD_UPDATE = "build_update";
-
-    // 课程开始消息
-    public final static String START_COURSE = "start_live";
-
-    // 课程开始广播
-    public final static String BROAD_START_COURSE = "BROAD_START_COURSE";
-
-    // 课程结束广播
-    public final static String BROAD_END_COURSE = "BROAD_END_COURSE";
-
-    // 课程结束消息
-    public final static String END_COURSE = "end_live";
-
-    // 发送广播  用户数据有新的绑定关系
-    public final static String BROAD_BUILD_UPDATE = "BROAD_BUILD_UPDATE";
-
     // 数据传递  用户数据有新的绑定关系
     public final static String BUILD_UPDATE_KEY = "BUILD_UPDATE_KEY";
 
     // 数据传递  需要上传的数据
     public final static String UPLOAD_DATA_KEY = "UPLOAD_DATA_KEY";
-
-    // 排序刷新界面频率
-    public final static String SORT_FREQUENCY = "SORT_FREQUENCY";
-
-    // 刷新用户关系频率
-    public final static String REFRESH_RELATION__FREQUENCY = "REFRESH_RELATION__FREQUENCY";
-
-    // 刷新数据频率
-    public final static String REFRESH_DATA_FREQUENCY = "REFRESH_DATA_FREQUENCY";
 
     // 店名
     public static String STORE_NAME = "长沙新瘾健身仓";
@@ -74,6 +32,9 @@ public class StringConstant {
 
     // 点播地址
     public static String DEMAND_URL = "-1";
+
+    // 已经提示用户次数过多  不再提示了
+    public static String NO_LONGER_PROMPTED = "NO_LONGER_PROMPTED";
 
     // 直播中的课程
     public static String LIVE_STATU_ING = "直播中";
@@ -92,38 +53,52 @@ public class StringConstant {
     public final static String LIVE_PLAY_TYPE = "LIVE_PLAY_TYPE";
 
     // KEY nick
-    public final static String KEY_NICK = "nick";
+    public final static String KEY_NICK = "nick";// 昵称
 
     // KEY userId
-    public final static String KEY_USER_ID = "userId";
+    public final static String KEY_USER_ID = "userId";// 用户 id
 
     // KEY avatar
-    public final static String KEY_AVATAR = "avatar";
+    public final static String KEY_AVATAR = "avatar";// 头像
 
     // KEY sex
-    public final static String KEY_SEX = "sex";
+    public final static String KEY_SEX = "sex";// 性别
 
     // KEY openId
-    public final static String KEY_OPEN_ID = "openId";
-
-    // KEY heartRate
-    public final static String KEY_HEART_RATE = "heartRate";
+    public final static String KEY_OPEN_ID = "openId";// openId
 
     // KEY birthday
-    public final static String KEY_BIRTHDAY = "birthday";
+    public final static String KEY_BIRTHDAY = "birthday";// 生日
 
     // KEY weight
-    public final static String KEY_WEIGHT = "weight";
+    public final static String KEY_WEIGHT = "weight";// 体重
 
     // KEY height
-    public final static String KEY_HEIGHT = "height";
-
-    // KEY cadence
-    public final static String KEY_CADENCE = "cadence";
-
-    // KEY interval4Cadence
-    public final static String KEY_INTERVAL_CADENCE = "interval4Cadence";
+    public final static String KEY_HEIGHT = "height";// 身高
 
     // KEY restingHeart
-    public final static String KEY_RESTING_HEART = "restingHeart";
+    public final static String KEY_RESTING_HEART = "restingHeart";// 安静心率
+
+    // KEY uuid
+    public final static String KEY_UUID = "uuid";// uuid  设备地址
+
+    // KEY showId
+    public final static String KEY_SHOW_ID = "showId";// 可视编号
+
+    // KEY supplierId
+    public final static String KEY_SUPPLIER_ID = "supplierId";// 设备厂商 id
+
+    // KEY type
+    public final static String KEY_TYPE = "type";// 设备类型  1、踏频 2、手环 3、臂带 4、胸带
+
+
+
+    // KEY heartRate
+    public final static String KEY_HEART_RATE = "heartRate";// 心率
+
+    // KEY cadence
+    public final static String KEY_CADENCE = "cadence";// 踏频
+
+    // KEY interval4Cadence
+    public final static String KEY_INTERVAL_CADENCE = "interval4Cadence";// 踏频间隔
 }

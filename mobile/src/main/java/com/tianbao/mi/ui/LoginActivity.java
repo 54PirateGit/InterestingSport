@@ -34,6 +34,9 @@ import retrofit.GsonConverterFactory;
 import retrofit.Response;
 import retrofit.Retrofit;
 
+import static com.tianbao.mi.constant.ConfigConstant.DEVICE_ID;
+import static com.tianbao.mi.constant.ConfigConstant.REG_ID;
+
 /**
  * 登录  只在安装之后第一次打开时会跳转到此界面  登录之后就不会再到此界面
  * 11/01
@@ -99,13 +102,13 @@ public class LoginActivity extends AppCompatActivity {
                         if (storeId != 0) SPUtils.put(mContext, StringConstant.STORE_ID_SP_KEY, storeId);// 店 ID
 
                         long refreshData = data.getRefreshDataFrequency();
-                        if (refreshData > 0) SPUtils.put(mContext, StringConstant.REFRESH_DATA_FREQUENCY, refreshData);// 数据刷新时间
+                        if (refreshData > 0) IntegerConstant.REFRESH_DATA_FREQUENCY = refreshData;// 用户数据刷新时间;// 数据刷新时间
 
                         long refreshRela = data.getRefreshRelationFrequency();
-                        if (refreshRela > 0) SPUtils.put(mContext, StringConstant.REFRESH_RELATION__FREQUENCY, refreshRela);// 用户关系刷新时间
+                        if (refreshRela > 0) IntegerConstant.REFRESH_RELATION__FREQUENCY = refreshRela;// 用户关系刷新时间
 
                         long refreshSort = data.getSortFrequency();
-                        if (refreshSort > 0) SPUtils.put(mContext, StringConstant.SORT_FREQUENCY, refreshSort);// 用户数据排序时间
+                        if (refreshSort > 0) IntegerConstant.SORT_FREQUENCY = refreshSort;// 用户数据排序时间
 
                         int girth = data.getGirth();
                         if (girth > 0) IntegerConstant.GIRTH = (float) girth  / 100;// 动感单车周长
@@ -187,8 +190,8 @@ public class LoginActivity extends AppCompatActivity {
 
         user[0] = admin;
         user[1] = password;
-        user[2] = StringConstant.DEVICE_ID;
-        user[3] = StringConstant.REG_ID;
+        user[2] = DEVICE_ID;
+        user[3] = REG_ID;
         return user;
     }
 

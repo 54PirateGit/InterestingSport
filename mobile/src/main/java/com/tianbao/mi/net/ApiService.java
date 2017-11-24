@@ -1,6 +1,6 @@
 package com.tianbao.mi.net;
 
-import com.tianbao.mi.bean.BuildBean;
+import com.tianbao.mi.bean.BindingBean;
 import com.tianbao.mi.bean.CourseInfoBean;
 import com.tianbao.mi.bean.CurrencyBean;
 import com.tianbao.mi.bean.LiveCourseBean;
@@ -29,8 +29,12 @@ public interface ApiService {
     Call<RecordBean> requestRecord();
 
     // 获取用户绑定关系
-    @POST(Api.GET_BUILD)
-    Call<BuildBean> getBuild(@QueryMap Map<String, List<String>> param);
+    @POST(Api.GET_BINDING)
+    Call<BindingBean> getBinding(@QueryMap Map<String, List<String>> param);
+
+    // 获取用户绑定关系
+    @POST(Api.GET_BINDINGS)
+    Call<BindingBean> getBindings(@QueryMap Map<String, String> param);
 
     // 登录
     @POST(Api.LOGIN)

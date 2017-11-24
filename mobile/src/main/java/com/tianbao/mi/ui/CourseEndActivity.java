@@ -13,6 +13,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.google.zxing.WriterException;
 import com.tianbao.mi.R;
 import com.tianbao.mi.app.MyApp;
 import com.tianbao.mi.bean.UploadData;
@@ -23,7 +24,9 @@ import com.tianbao.mi.net.Api;
 import com.tianbao.mi.net.ApiService;
 import com.tianbao.mi.utils.BitmapUtils;
 import com.tianbao.mi.utils.L;
+import com.tianbao.mi.utils.QrUtil;
 import com.tianbao.mi.utils.SPUtils;
+import com.tianbao.mi.utils.SendBroadUtil;
 import com.tianbao.mi.utils.T;
 
 import butterknife.BindView;
@@ -52,6 +55,8 @@ public class CourseEndActivity extends Activity {
     View viewSave;// 数据正在保存
     @BindView(R.id.view_qr)
     View viewQr;// 数据保存成功展示数据分享二维码
+    @BindView(R.id.image)
+    ImageView imageQr;// 二维码
 
     private Context mContext;
     private Handler mHandler = new Handler();
@@ -75,19 +80,6 @@ public class CourseEndActivity extends Activity {
 
         initView();
         initData();
-    }
-
-    private void playSound() {
-        try {
-            mp = MediaPlayer.create(CourseEndActivity.this, R.raw.course_end1);// 重新设置要播放的音频
-            mp.start();// 开始播放
-            mp.setOnCompletionListener(m -> {
-                mp = MediaPlayer.create(mContext, R.raw.course_end2);
-                mp.start();
-            });
-        } catch (Exception e) {
-            e.printStackTrace();// 输出异常信息
-        }
     }
 
     // 初始化视图
@@ -114,7 +106,7 @@ public class CourseEndActivity extends Activity {
 
     // 初始化数据
     private void initData() {
-        playSound();
+        SendBroadUtil.sendPlayToService(mContext, IntegerConstant.COURSE_END_SOUND_ID);
     }
 
     // 课程完结上传数据
@@ -132,16 +124,17 @@ public class CourseEndActivity extends Activity {
             public void onResponse(Response<UploadDataBean> response, Retrofit retrofit) {
                 UploadDataBean bean = response.body();
                 int code = bean.getCode();
-
-                L.i("GymData", "code == " + code);
                 L.i("GymData", "message == " + bean.getMessage());
 
                 if (code == IntegerConstant.RESULT_OK) {// 数据上传成功
-
-                    L.i("GymData", "GymData -> isUploadFinish = true");
-
+                    try {
+                        Bitmap qrBitmap = QrUtil.makeQRImage(mContext, "hello world", 270, 270);
+                        imageQr.setImageBitmap(qrBitmap);
+                        viewQr.setVisibility(View.VISIBLE);
+                    } catch (WriterException e) {
+                        e.printStackTrace();
+                    }
                     viewSave.setVisibility(View.GONE);
-                    viewQr.setVisibility(View.VISIBLE);
                 }
             }
 
@@ -188,17 +181,17 @@ public class CourseEndActivity extends Activity {
     }
 
     @Override
+    protected void onStop() {
+        super.onStop();
+        SendBroadUtil.sendStopToService(mContext);
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
         if (mCountDownRunnable != null) {
             mHandler.removeCallbacks(mCountDownRunnable);
             mCountDownRunnable = null;
-        }
-        if (mp != null) {
-            mp.stop();
-            mp.reset();
-            mp.release();
-            mp = null;
         }
         imageBackground = null;
         textTitle = null;

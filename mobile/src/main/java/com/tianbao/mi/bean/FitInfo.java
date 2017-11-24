@@ -5,11 +5,13 @@ import com.tianbao.mi.constant.IntegerConstant;
 import org.joda.time.LocalDateTime;
 import org.joda.time.Seconds;
 
+import java.io.Serializable;
+
 /**
  * FitInfo
  * Created by edianzu on 2017/11/20.
  */
-public class FitInfo {
+public class FitInfo implements Serializable {
 
     /**
      * 踏频

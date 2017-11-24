@@ -24,6 +24,8 @@ public class AutoScrollListView extends ListView {
     private boolean isTipRun;// 线程是否开启
     private boolean isJoinRun;// 瘾伙伴加入线程是否开启
 
+    private boolean isUpdate;// 有更新
+
     public AutoScrollListView(Context context) {
         this(context, null);
         mContext = context;
@@ -41,7 +43,7 @@ public class AutoScrollListView extends ListView {
         this.iList = list;
         setAdapter(new InfoListAdapter(mContext, iList));
 
-        postDelayed(updateRunnable, IntegerConstant.DELAY_TIME);
+        postDelayed(updateRunnable, IntegerConstant.TIP_DELAY_TIME);
         isTipRun = true;
     }
 
@@ -56,7 +58,7 @@ public class AutoScrollListView extends ListView {
         this.pList = list;
         setAdapter(new PartnerTipAdapter(mContext, pList));
 
-        postDelayed(updatePartnerRunnable, IntegerConstant.DELAY_TIME);
+        postDelayed(updatePartnerRunnable, IntegerConstant.JOIN_DELAY_TIME);
         isJoinRun = true;
     }
 
@@ -72,9 +74,13 @@ public class AutoScrollListView extends ListView {
         public void run() {
             if (iList.size() > 3) {
                 iList.remove(0);
+                isUpdate = true;
             }
-            setAdapter(new InfoListAdapter(mContext, iList));
-            postDelayed(this, IntegerConstant.DELAY_TIME);
+            if (isUpdate) {
+                setAdapter(new InfoListAdapter(mContext, iList));
+                isUpdate = false;
+            }
+            postDelayed(this, IntegerConstant.TIP_DELAY_TIME);
         }
     };
 
@@ -86,7 +92,7 @@ public class AutoScrollListView extends ListView {
                 pList.remove(0);
             }
             setAdapter(new PartnerTipAdapter(mContext, pList));
-            postDelayed(this, IntegerConstant.DELAY_TIME);
+            postDelayed(this, IntegerConstant.JOIN_DELAY_TIME);
         }
     };
 

@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.Typeface;
-import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.TextUtils;
@@ -29,7 +28,7 @@ import com.tianbao.mi.adapter.BannerAdapter;
 import com.tianbao.mi.adapter.LiveListAdapter;
 import com.tianbao.mi.adapter.OnDemandAdapter;
 import com.tianbao.mi.app.MyApp;
-import com.tianbao.mi.bean.BuildBean;
+import com.tianbao.mi.bean.BindingBean;
 import com.tianbao.mi.bean.CourseInfoBean;
 import com.tianbao.mi.bean.CurrencyBean;
 import com.tianbao.mi.bean.LiveCourseBean;
@@ -45,8 +44,7 @@ import com.tianbao.mi.utils.DialogUtils;
 import com.tianbao.mi.utils.L;
 import com.tianbao.mi.utils.ListViewUtils;
 import com.tianbao.mi.utils.QrUtil;
-import com.tianbao.mi.utils.SPUtils;
-import com.tianbao.mi.utils.SoundPlayUtils;
+import com.tianbao.mi.utils.SendBroadUtil;
 import com.tianbao.mi.utils.T;
 import com.tianbao.mi.widget.AutoScrollListView;
 import com.tianbao.mi.widget.PartnerLayout;
@@ -66,7 +64,11 @@ import retrofit.GsonConverterFactory;
 import retrofit.Response;
 import retrofit.Retrofit;
 
+import static com.tianbao.mi.constant.ConfigConstant.DEVICE_ID;
 import static com.tianbao.mi.constant.IntegerConstant.RESTART_REQUEST_TIME;
+import static com.tianbao.mi.constant.IntegerConstant.STANDBY_SOUND_ID;
+import static com.tianbao.mi.constant.ReceiverConstant.BROAD_BINDING_UPDATE;
+import static com.tianbao.mi.constant.ReceiverConstant.BROAD_START_COURSE;
 
 /**
  * 待机界面
@@ -118,29 +120,14 @@ public class StandbyActivity extends Activity {
 
     private List<OnDemandCourseBean.DataBean> oList;// 保存点播课程信息
     private List<LiveCourseBean.DataBean> dList;// 保存直播课程信息
-    private List<String> key = new ArrayList<>();
     private List<PartnerTipBean> pList;
     private List<String> ids = new ArrayList<>();
-
-    private List<String> upList = new ArrayList<>();
-    private List<String> downList = new ArrayList<>();
-
-    private MediaPlayer mp;
-
-    private void setKey() {
-        int storeId = (int) SPUtils.get(mContext, StringConstant.STORE_ID_SP_KEY, 1);
-        String kString;
-        for (int i = 0; i < 30; i++) {
-            kString = storeId + "_" + i;
-            key.add(kString);
-        }
-    }
 
     // 注册广播
     private void registerBroad() {
         IntentFilter filter = new IntentFilter();
-        filter.addAction(StringConstant.BROAD_BUILD_UPDATE);
-        filter.addAction(StringConstant.BROAD_START_COURSE);
+        filter.addAction(BROAD_BINDING_UPDATE);
+        filter.addAction(BROAD_START_COURSE);
         registerReceiver(mReceiver, filter);
     }
 
@@ -152,13 +139,7 @@ public class StandbyActivity extends Activity {
 
     // 播放背景音乐
     private void playSound() {
-        try {
-            mp = MediaPlayer.create(mContext, R.raw.standby);// 重新设置要播放的音频
-            mp.setLooping(true);
-            mp.start();// 开始播放
-        } catch (Exception e) {
-            e.printStackTrace();// 输出异常信息
-        }
+        SendBroadUtil.sendPlayToService(mContext, STANDBY_SOUND_ID);
     }
 
     @Override
@@ -168,7 +149,6 @@ public class StandbyActivity extends Activity {
         mContext = this;
         ButterKnife.bind(this);
 
-        setKey();// 全部 key
         initView();
     }
 
@@ -176,8 +156,8 @@ public class StandbyActivity extends Activity {
     protected void onStart() {
         super.onStart();
 
-        requestUserInfo(key);
-        playSound();
+        requestAllUserInfo();// 获取全部用户绑定关系
+        playSound();// 播放背景音乐
         registerBroad();// 注册广播
         mHandler.post(mLoopLiveListRunnable);
         if (isLoop) {
@@ -188,7 +168,7 @@ public class StandbyActivity extends Activity {
     @Override
     protected void onStop() {
         super.onStop();
-
+        SendBroadUtil.sendStopToService(mContext);
         if (mLoopLiveListRunnable != null) {
             mHandler.removeCallbacks(mLoopLiveListRunnable);
         }
@@ -206,12 +186,6 @@ public class StandbyActivity extends Activity {
         }
         if (mReceiver != null) {
             unregisterReceiver(mReceiver);
-        }
-        if (mp != null) {
-            mp.stop();
-            mp.reset();
-            mp.release();
-            mp = null;
         }
         if (scrollList != null) {
             scrollList.recovery();
@@ -240,7 +214,7 @@ public class StandbyActivity extends Activity {
 
     // 初始化轮播图
     private void initBanner() {
-        upList = MyApp.getUpUrl();
+        List<String> upList = MyApp.getUpUrl();
         if (upList == null || upList.size() == 0) {
             banner.setAlpha(0.5f);
         } else {
@@ -261,7 +235,7 @@ public class StandbyActivity extends Activity {
         }
 
         // 生成二维码
-        downList = MyApp.getDownUrl();
+        List<String> downList = MyApp.getDownUrl();
         viewQr.setAlpha(0.65f);
         if (downList != null && downList.size() > 0) {
             Bitmap qrBitmap = null;
@@ -352,7 +326,6 @@ public class StandbyActivity extends Activity {
                         ListViewUtils.setListHeight(listDemand);
                         oAdapter.notifyDataSetChanged();
                     } else {
-                        L.w("requestOnDemandList", "data is error");
                         mHandler.postDelayed(reStartRequestDemand, RESTART_REQUEST_TIME);
                     }
                     if (isSelectLive) {
@@ -361,13 +334,13 @@ public class StandbyActivity extends Activity {
                         listDemand.setVisibility(View.VISIBLE);
                     }
                 } else {
-                    L.w("requestOnDemandList", "data is null");
                     mHandler.postDelayed(reStartRequestDemand, RESTART_REQUEST_TIME);
                 }
             }
 
             @Override
             public void onFailure(Throwable t) {
+                mHandler.postDelayed(reStartRequestDemand, RESTART_REQUEST_TIME);
                 L.w("requestOnDemandList", "连接服务器失败");
             }
         });
@@ -376,7 +349,7 @@ public class StandbyActivity extends Activity {
     // 获取直播课程列表
     private void requestLiveList() {
         Map<String, String> param = new HashMap<>();
-        param.put("deviceId", StringConstant.DEVICE_ID);
+        param.put("deviceId", DEVICE_ID);
 
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(Api.BASE_URL)
@@ -430,7 +403,6 @@ public class StandbyActivity extends Activity {
                     }
                 } else {
                     mHandler.postDelayed(reStartRequest, RESTART_REQUEST_TIME);
-
                     L.d("requestLiveList", "requestLiveList 获取课程信息失败，请稍后重试");
                 }
             }
@@ -438,7 +410,6 @@ public class StandbyActivity extends Activity {
             @Override
             public void onFailure(Throwable t) {
                 L.d("requestLiveList", "requestLiveList 连接服务器失败");
-
                 mHandler.postDelayed(reStartRequest, RESTART_REQUEST_TIME);
             }
         });
@@ -448,7 +419,7 @@ public class StandbyActivity extends Activity {
     private void selectLiveList(int id) {
         Map<String, String> param = new HashMap<>();
         param.put("courseId", String.valueOf(id));
-        param.put("deviceId", StringConstant.DEVICE_ID);
+        param.put("deviceId", DEVICE_ID);
 
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(Api.BASE_URL)
@@ -492,58 +463,6 @@ public class StandbyActivity extends Activity {
         });
     }
 
-    // 选择直播课程
-    private void changeLiveList(int id, int oId) {
-        Map<String, String> param = new HashMap<>();
-        param.put("courseId", String.valueOf(id));
-        param.put("oldCourseId", String.valueOf(oId));
-        param.put("deviceId", StringConstant.DEVICE_ID);
-
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(Api.BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-
-        ApiService service = retrofit.create(ApiService.class);
-        Call<CurrencyBean> model = service.changeCourseLive(param);
-        model.enqueue(new Callback<CurrencyBean>() {
-            @Override
-            public void onResponse(Response<CurrencyBean> response, Retrofit retrofit) {
-                if (isCancelRequest) return;
-                if (dialogLoading != null) dialogLoading.dismiss();
-                isLoad = false;
-                CurrencyBean bean = response.body();
-                if (bean == null) return;
-                int code = bean.getCode();
-                if (code == IntegerConstant.RESULT_OK) {
-                    if (mIntoLiveRunnable != null) {
-                        mHandler.removeCallbacks(mIntoLiveRunnable);
-                    }
-                    if (lAdapter != null) {
-                        for (int i = 0; i < dList.size(); i++) {
-                            if (i == position) {
-                                dList.get(i).setSelect(true);
-                            } else {
-                                dList.get(i).setSelect(false);
-                            }
-                        }
-                        lAdapter.setList(dList);
-                        mHandler.postDelayed(mGetCourseInfoRunnable, IntegerConstant.INTO_LIVE_COURSE_TIME);
-                    }
-                } else {
-                    L.d("changeLiveList", "changeLiveList 获取课程信息失败，请重试");
-                }
-            }
-
-            @Override
-            public void onFailure(Throwable t) {
-                if (dialogLoading != null) dialogLoading.dismiss();
-                isLoad = false;
-                L.d("changeLiveList", "changeLiveList 连接服务器失败");
-            }
-        });
-    }
-
     // 获取课程信息
     private void request() {
         Map<String, String> param = new HashMap<>();
@@ -582,8 +501,6 @@ public class StandbyActivity extends Activity {
                         }
                     } else {
                         if (course.getLiveStatus().equals(StringConstant.LIVE_STATU_ING)) {
-//                            SoundPlayUtils.play(IntegerConstant.SOUND_START_LOAD);// 播放背景音乐
-
                             isLoop = false;
                             Intent intent = new Intent(StandbyActivity.this, LoadActivity.class);
                             intent.putExtra(StringConstant.PLAY_TYPE, StringConstant.LIVE_PLAY_TYPE);
@@ -611,7 +528,7 @@ public class StandbyActivity extends Activity {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            if (action.equals(StringConstant.BROAD_BUILD_UPDATE)) {// 有新的用户绑定关系需要处理
+            if (action.equals(BROAD_BINDING_UPDATE)) {// 有新的用户绑定关系需要处理
                 String key = intent.getStringExtra(StringConstant.BUILD_UPDATE_KEY);
 
                 List<String> tempList = new ArrayList<>();
@@ -621,7 +538,7 @@ public class StandbyActivity extends Activity {
                 requestUserInfo(tempList);
 
                 L.d("tempList", "tempList -> " + tempList.toString());
-            } else if (action.equals(StringConstant.BROAD_START_COURSE)) {// 课程开始
+            } else if (action.equals(BROAD_START_COURSE)) {// 课程开始
                 mHandler.postDelayed(mIntoLiveRunnable, IntegerConstant.INTO_LIVE_COURSE_TIME);
             }
         }
@@ -629,8 +546,6 @@ public class StandbyActivity extends Activity {
 
     // 进入直播
     private Runnable mIntoLiveRunnable = () -> {
-//        SoundPlayUtils.play(IntegerConstant.SOUND_START_LOAD);// 播放背景音乐
-
         isLoop = false;
         Intent intent = new Intent(StandbyActivity.this, LoadActivity.class);
         intent.putExtra(StringConstant.PLAY_TYPE, StringConstant.LIVE_PLAY_TYPE);
@@ -638,12 +553,78 @@ public class StandbyActivity extends Activity {
         finish();
     };
 
+    // 获取全部用户的绑定关系
+    private void requestAllUserInfo() {
+        Map<String, String> param = new HashMap<>();
+        param.put("storeId", String.valueOf(IntegerConstant.STORE_ID));
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(Api.BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        ApiService service = retrofit.create(ApiService.class);
+        Call<BindingBean> model = service.getBindings(param);
+        model.enqueue(new Callback<BindingBean>() {
+            @Override
+            public void onResponse(Response<BindingBean> response, Retrofit retrofit) {
+                if (isCancelRequest) return;
+                BindingBean buildBean = response.body();
+                if (buildBean == null) return;
+
+                int code = buildBean.getCode();
+                if (IntegerConstant.RESULT_OK == code) {
+                    L.v("response", buildBean.toString());
+
+                    Map<String, Map<String, String>> rMap = buildBean.getData();
+
+                    for (Map.Entry<String, Map<String, String>> entry : rMap.entrySet()) {
+                        System.out.println("key = " + entry.getKey() + " and value = " + entry.getValue());
+
+                        Map<String, String> map = entry.getValue();
+                        String id = map.get(StringConstant.KEY_USER_ID);
+                        if (!TextUtils.isEmpty(id) && !ids.contains(id)) {
+                            ids.add(id);
+
+                            // 提示有新的瘾伙伴加入
+                            PartnerTipBean bean = new PartnerTipBean();
+                            String name = map.get(StringConstant.KEY_NICK);
+                            if (TextUtils.isEmpty(name)) name = "NULL";
+                            bean.setName(name);
+                            if (scrollList.isJoinRun()) {
+                                scrollList.updatePartnerData(bean);
+                            } else {
+                                if (pList == null) pList = new ArrayList<>();
+                                pList.add(bean);
+                                scrollList.setPartnerList(pList);
+                            }
+
+                            // 加入的瘾伙伴展示
+                            PartnerBean pBean = new PartnerBean();
+                            pBean.setNick(name);
+                            pBean.setHead(map.get(StringConstant.KEY_AVATAR));
+                            PartnerView view = new PartnerView(mContext);
+                            view.updateView(pBean);
+                            viewPartner.setPartnerView(view);
+                        }
+                    }
+                } else {
+                    L.d("requestUserInfo", "requestUserInfo 没有获取到数据或获取数据失败");
+                }
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                L.d("requestUserInfo", "requestUserInfo 连接服务器失败");
+            }
+        });
+    }
+
     // 获取数据失败时间隔一定时间重复发送请求获取数据
     private int count3 = 0;
     private Runnable mRestartRequestUserInfoRunnable = () -> {
         if (count3 < IntegerConstant.RESTART_REQUEST_COUNT) {
             count3++;
-            requestUserInfo(key);
+            requestAllUserInfo();
         }
     };
 
@@ -659,12 +640,12 @@ public class StandbyActivity extends Activity {
         L.d("tempList", "tempList -> " + tempList.toString());
 
         ApiService service = retrofit.create(ApiService.class);
-        Call<BuildBean> model = service.getBuild(param);
-        model.enqueue(new Callback<BuildBean>() {
+        Call<BindingBean> model = service.getBinding(param);
+        model.enqueue(new Callback<BindingBean>() {
             @Override
-            public void onResponse(Response<BuildBean> response, Retrofit retrofit) {
+            public void onResponse(Response<BindingBean> response, Retrofit retrofit) {
                 if (isCancelRequest) return;
-                BuildBean buildBean = response.body();
+                BindingBean buildBean = response.body();
                 if (buildBean == null) return;
 
                 int code = buildBean.getCode();
@@ -702,10 +683,6 @@ public class StandbyActivity extends Activity {
                             PartnerView view = new PartnerView(mContext);
                             view.updateView(pBean);
                             viewPartner.setPartnerView(view);
-
-                            mHandler.postDelayed(() -> {
-                                SoundPlayUtils.play(IntegerConstant.SOUND_PARTNER_JOIN);// 播放背景音乐  有新的瘾伙伴加入
-                            }, 2500L);
                         }
                     }
                 } else {
@@ -836,11 +813,7 @@ public class StandbyActivity extends Activity {
                         dialogLoading = DialogUtils.dialogLoading(mContext);
                         dialogLoading.show();
                         isLoad = true;
-                        if (MyApp.getCourseId() == 0) {
-                            selectLiveList(lAdapter.getCourseId(position));
-                        } else {
-                            changeLiveList(lAdapter.getCourseId(position), MyApp.getCourseId());
-                        }
+                        selectLiveList(lAdapter.getCourseId(position));
                     }
                 } else {// 焦点在点播列表中
                     String url = oList.get(position).getLiveUrl();
@@ -927,10 +900,6 @@ public class StandbyActivity extends Activity {
         if (dList != null) {
             dList.clear();
             dList = null;
-        }
-        if (key != null) {
-            key.clear();
-            key = null;
         }
         if (pList != null) {
             pList.clear();

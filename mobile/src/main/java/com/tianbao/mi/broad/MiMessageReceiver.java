@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 
 import com.tianbao.mi.app.MyApp;
+import com.tianbao.mi.constant.ConfigConstant;
 import com.tianbao.mi.constant.StringConstant;
 import com.tianbao.mi.utils.L;
 import com.xiaomi.mipush.sdk.ErrorCode;
@@ -13,6 +14,13 @@ import com.xiaomi.mipush.sdk.MiPushMessage;
 import com.xiaomi.mipush.sdk.PushMessageReceiver;
 
 import java.util.List;
+
+import static com.tianbao.mi.constant.ConfigConstant.BUILD_UPDATE;
+import static com.tianbao.mi.constant.ConfigConstant.END_COURSE;
+import static com.tianbao.mi.constant.ConfigConstant.START_COURSE;
+import static com.tianbao.mi.constant.ReceiverConstant.BROAD_BINDING_UPDATE;
+import static com.tianbao.mi.constant.ReceiverConstant.BROAD_END_COURSE;
+import static com.tianbao.mi.constant.ReceiverConstant.BROAD_START_COURSE;
 
 /**
  * 接收推送消息
@@ -29,20 +37,20 @@ public class MiMessageReceiver extends PushMessageReceiver {
         L.v("MiMessageReceiver", "title -> " + title);
 
         switch (title) {
-            case StringConstant.BUILD_UPDATE:// 有新的用户绑定关系
+            case BUILD_UPDATE:// 有新的用户绑定关系
                 String content = miPushMessage.getContent();
                 L.v("MiMessageReceiver", "content -> " + content);
 
-                Intent intentBuild = new Intent(StringConstant.BROAD_BUILD_UPDATE);
+                Intent intentBuild = new Intent(BROAD_BINDING_UPDATE);
                 intentBuild.putExtra(StringConstant.BUILD_UPDATE_KEY, content);
                 MyApp.getContext().sendBroadcast(intentBuild);
                 break;
-            case StringConstant.START_COURSE:// 课程开始了
-                Intent intentStart = new Intent(StringConstant.BROAD_START_COURSE);
+            case START_COURSE:// 课程开始了
+                Intent intentStart = new Intent(BROAD_START_COURSE);
                 MyApp.getContext().sendBroadcast(intentStart);
                 break;
-            case StringConstant.END_COURSE:// 课程结束了
-                Intent intentEnd = new Intent(StringConstant.BROAD_END_COURSE);
+            case END_COURSE:// 课程结束了
+                Intent intentEnd = new Intent(BROAD_END_COURSE);
                 MyApp.getContext().sendBroadcast(intentEnd);
                 break;
         }
@@ -59,7 +67,7 @@ public class MiMessageReceiver extends PushMessageReceiver {
 
                 List<String> regId = message.getCommandArguments();
                 if (regId != null && regId.size() > 0) {
-                    StringConstant.REG_ID = regId.get(0);
+                    ConfigConstant.REG_ID = regId.get(0);
                 }
 
                 L.i("register -> " + msg);

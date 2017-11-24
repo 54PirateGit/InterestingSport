@@ -78,6 +78,10 @@
             android:name=".ui.CalisthenicsActivity"
             android:theme="@style/AnimStyle"/>
 
+        <!--后台服务-->
+        <service
+            android:name="com.tianbao.mi.service.BackstageService"/>
+
         <!-- 消息接收监听器 -->
         <service
             android:name="com.xiaomi.push.service.XMJobService"

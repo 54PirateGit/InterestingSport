@@ -36,6 +36,7 @@ import retrofit.GsonConverterFactory;
 import retrofit.Response;
 import retrofit.Retrofit;
 
+import static com.tianbao.mi.constant.ConfigConstant.DEVICE_ID;
 import static com.tianbao.mi.constant.IntegerConstant.RESTART_REQUEST_TIME;
 
 /**
@@ -93,7 +94,7 @@ public class SplashActivity extends Activity {
         } else if (type == IntegerConstant.DYNAMIC_SYSTEM_TYPE) {// 动感单车
             IntegerConstant.STORE_ID = (int) SPUtils.get(mContext, StringConstant.STORE_ID_SP_KEY, 0);// 如果已经登录过则有数据
             requestCourse(IntegerConstant.STORE_ID);
-            requestApp(StringConstant.DEVICE_ID);
+            requestApp(DEVICE_ID);
         } else if (type == IntegerConstant.CALISTHENICS_SYSTEM_TYPE) {// 团操
             mHandler.postDelayed(() -> {
                 startActivity(new Intent(mContext, CalisthenicsActivity.class));
@@ -146,7 +147,7 @@ public class SplashActivity extends Activity {
     private int count = 0;
     private Runnable mLoopRequestRunnable = () -> {
         if (count < IntegerConstant.RESTART_REQUEST_COUNT) {
-            requestApp(StringConstant.DEVICE_ID);
+            requestApp(DEVICE_ID);
             count++;
         }
     };

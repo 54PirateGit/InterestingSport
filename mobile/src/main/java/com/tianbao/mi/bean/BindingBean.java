@@ -9,11 +9,11 @@ import lombok.Data;
  * Created by edianzu on 2017/10/26.
  */
 @Data
-public class BuildBean {
+public class BindingBean {
 
     private int code;
 
-    private Map<String, Map<String, String>> data;
+    private Map<String, Map<String, Object>> data;
 
     private String message;
 }
